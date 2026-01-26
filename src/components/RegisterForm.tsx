@@ -5,8 +5,8 @@ import * as api from '@api/endpoints'
 
 export const RegisterForm: FC = () => {
   const navigate = useNavigate()
-  const setUser = useAuthStore((state: any) => state.setUser)
-  const setToken = useAuthStore((state: any) => state.setToken)
+  const setUser = useAuthStore((state) => state.setUser)
+  const setToken = useAuthStore((state) => state.setToken)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -41,8 +41,8 @@ export const RegisterForm: FC = () => {
 
     try {
       const response = userType === 'student'
-        ? await (api as any).studentRegister(formData.name, formData.email, formData.password)
-        : await (api as any).teacherRegister(formData.name, formData.email, formData.password)
+        ? await api.studentRegister(formData.name, formData.email, formData.password)
+        : await api.teacherRegister(formData.name, formData.email, formData.password)
 
       const { user, token } = (response as any).data
       setUser(user)
@@ -50,7 +50,11 @@ export const RegisterForm: FC = () => {
 
       navigate(userType === 'student' ? '/student' : '/teacher')
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Ошибка регистрации')
+      if (err.response?.status === 404) {
+        setError('Сервер не найден (404). Проверьте API URL.')
+      } else {
+        setError(err.response?.data?.message || 'Ошибка регистрации')
+      }
     } finally {
       setLoading(false)
     }

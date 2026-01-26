@@ -5,8 +5,8 @@ import * as api from '@api/endpoints'
 
 export const LoginForm: FC = () => {
   const navigate = useNavigate()
-  const setUser = useAuthStore((state: any) => state.setUser)
-  const setToken = useAuthStore((state: any) => state.setToken)
+  const setUser = useAuthStore((state) => state.setUser)
+  const setToken = useAuthStore((state) => state.setToken)
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -22,8 +22,8 @@ export const LoginForm: FC = () => {
     try {
       const response =
         userType === 'student'
-          ? await (api as any).studentLogin(email, password)
-          : await (api as any).teacherLogin(email, password)
+          ? await api.studentLogin(email, password)
+          : await api.teacherLogin(email, password)
 
       const { user, token } = (response as any).data
       setUser(user)
@@ -31,7 +31,11 @@ export const LoginForm: FC = () => {
 
       navigate(userType === 'student' ? '/student' : '/teacher')
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Ошибка входа')
+      if (err.response?.status === 404) {
+        setError('Сервер не найден (404). Проверьте API URL.')
+      } else {
+        setError(err.response?.data?.message || 'Ошибка входа')
+      }
     } finally {
       setLoading(false)
     }
