@@ -46,9 +46,18 @@ export const register = async (req: Request, res: Response) => {
     } else {
       res.status(400).json({ message: 'Неверные данные пользователя' });
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Ошибка сервера при регистрации' });
+  } catch (error: any) {
+    console.error('REGISTRATION_ERROR_DETAILS:', error); // Более детальный лог для Vercel
+
+    // Если это ошибка валидации Mongoose (например, не заполнено обязательное поле)
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ message: 'Ошибка валидации. Проверьте введенные данные.', details: error.errors });
+    }
+    // Если это ошибка дубликата (уже есть такой email), но findOne ее пропустил
+    if (error.code === 11000) {
+      return res.status(409).json({ message: 'Этот email уже зарегистрирован.' });
+    }
+    res.status(500).json({ message: 'Внутренняя ошибка сервера.', error: error.message });
   }
 };
 
