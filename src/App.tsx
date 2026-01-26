@@ -4,7 +4,7 @@ import { LoginForm } from '@components/LoginForm'
 import { RegisterForm } from '@components/RegisterForm'
 import { StudentHome } from '@pages/StudentHome'
 import { TeacherDashboard } from '@pages/TeacherDashboard'
-import '../styles/index.css'
+import '@styles'
 
 function App() {
   const isAuthenticated = useAuthStore((state: any) => state.isAuthenticated)
