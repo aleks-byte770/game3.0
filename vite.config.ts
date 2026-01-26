@@ -1,30 +1,25 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { fileURLToPath } from "url";
-import { dirname, resolve } from "path";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@": resolve(__dirname, "./src"),
-      "@store": resolve(__dirname, "./src/store"),
-      "@store/": resolve(__dirname, "./src/store") + "/",
-      "@components": resolve(__dirname, "./src/components"),
-      "@components/": resolve(__dirname, "./src/components") + "/",
-      "@pages": resolve(__dirname, "./src/pages"),
-      "@pages/": resolve(__dirname, "./src/pages") + "/",
-      "@hooks": resolve(__dirname, "./src/hooks"),
-      "@hooks/": resolve(__dirname, "./src/hooks") + "/",
-      "@api": resolve(__dirname, "./src/api"),
-      "@api/": resolve(__dirname, "./src/api") + "/",
-      "@types": resolve(__dirname, "./src/types"),
-      "@types/": resolve(__dirname, "./src/types") + "/",
-      "@styles": resolve(__dirname, "./src/styles"),
-      "@styles/": resolve(__dirname, "./src/styles") + "/",
+      "@": "/src",
+      "@store": "/src/store",
+      "@store/": "/src/store/",
+      "@components": "/src/components",
+      "@components/": "/src/components/",
+      "@pages": "/src/pages",
+      "@pages/": "/src/pages/",
+      "@hooks": "/src/hooks",
+      "@hooks/": "/src/hooks/",
+      "@api": "/src/api",
+      "@api/": "/src/api/",
+      "@types": "/src/types",
+      "@types/": "/src/types/",
+      "@styles": "/src/styles",
+      "@styles/": "/src/styles/",
     },
   },
   server: {
