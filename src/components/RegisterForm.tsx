@@ -51,7 +51,12 @@ export const RegisterForm: FC = () => {
       navigate(userType === 'student' ? '/student' : '/teacher')
     } catch (err: any) {
       if (err.response?.status === 404) {
-        setError('Сервер не найден (404). Проверьте API URL.')
+        const apiUrl = import.meta.env.VITE_API_URL
+        let errorMessage = 'Ошибка 404: Бэкенд не найден. Проверьте VITE_API_URL в настройках Vercel.'
+        if (apiUrl && (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1'))) {
+          errorMessage += ' Адрес "localhost" не работает на Vercel. Укажите публичный URL вашего сервера.'
+        }
+        setError(errorMessage)
       } else {
         setError(err.response?.data?.message || 'Ошибка регистрации')
       }
