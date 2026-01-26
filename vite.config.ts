@@ -1,27 +1,27 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import fs from "fs";
-
-function loadTsconfigPaths() {
-  const tsconfig = JSON.parse(fs.readFileSync("./tsconfig.json", "utf-8"));
-  const paths = tsconfig.compilerOptions.paths;
-  const alias: Record<string, string> = {};
-  
-  Object.entries(paths).forEach(([key, values]: [string, any]) => {
-    if (!key.includes("*")) {
-      const target = (values[0] as string).replace(/\/index\.(ts|tsx)$/, "");
-      alias[key] = path.resolve(__dirname, target);
-    }
-  });
-  
-  return alias;
-}
 
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    alias: loadTsconfigPaths(),
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      "@store": path.resolve(__dirname, "./src/store"),
+      "@store/": path.resolve(__dirname, "./src/store") + "/",
+      "@components": path.resolve(__dirname, "./src/components"),
+      "@components/": path.resolve(__dirname, "./src/components") + "/",
+      "@pages": path.resolve(__dirname, "./src/pages"),
+      "@pages/": path.resolve(__dirname, "./src/pages") + "/",
+      "@hooks": path.resolve(__dirname, "./src/hooks"),
+      "@hooks/": path.resolve(__dirname, "./src/hooks") + "/",
+      "@api": path.resolve(__dirname, "./src/api"),
+      "@api/": path.resolve(__dirname, "./src/api") + "/",
+      "@types": path.resolve(__dirname, "./src/types"),
+      "@types/": path.resolve(__dirname, "./src/types") + "/",
+      "@styles": path.resolve(__dirname, "./src/styles"),
+      "@styles/": path.resolve(__dirname, "./src/styles") + "/",
+    },
   },
   server: {
     port: 3000,
