@@ -44,9 +44,9 @@ export const LoginForm: FC = () => {
           achievements: [],
           createdAt: new Date().toISOString(),
         }
+        // Устанавливаем фиктивный токен, чтобы сессия считалась активной и не сбрасывалась
+        setToken('student-session-token')
         setUser(studentData)
-        // Токен для ученика не устанавливается
-        setToken(null)
         navigate('/student')
         return
       }
