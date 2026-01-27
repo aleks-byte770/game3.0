@@ -2,6 +2,7 @@ import React, { useState, FC, ChangeEvent, FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@store/authStore'
 import * as api from '@api/endpoints'
+import { Student } from '@types'
 
 export const LoginForm: FC = () => {
   const navigate = useNavigate()
@@ -31,10 +32,17 @@ export const LoginForm: FC = () => {
           setLoading(false)
           return
         }
-        const studentData = {
+        const studentData: Student = {
           name: name.trim(),
           grade: grade,
           role: 'student',
+          // Добавляем недостающие поля для соответствия типу Student
+          id: `student-${Date.now()}`,
+          email: '', // У анонимного ученика нет email
+          score: 0,
+          coins: 0,
+          achievements: [],
+          createdAt: new Date().toISOString(),
         }
         setUser(studentData)
         // Токен для ученика не устанавливается
