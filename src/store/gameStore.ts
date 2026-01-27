@@ -1,16 +1,5 @@
 import { create } from 'zustand'
 import type { Level } from '../types/index'
-import { grade1Levels } from './levels/grade1'
-import { grade2Levels } from './levels/grade2'
-import { grade3Levels } from './levels/grade3'
-import { grade4Levels } from './levels/grade4'
-import { grade5Levels } from './levels/grade5'
-import { grade6Levels } from './levels/grade6'
-import { grade7Levels } from './levels/grade7'
-import { grade8Levels } from './levels/grade8'
-import { grade9Levels } from './levels/grade9'
-import { grade10Levels } from './levels/grade10'
-import { grade11Levels } from './levels/grade11'
 
 interface GameState {
   levels: Level[]
@@ -24,17 +13,23 @@ interface GameState {
 
 // Дефолтные уровни для каждого класса
 const defaultLevels: Level[] = [
-  ...grade1Levels,
-  ...grade2Levels,
-  ...grade3Levels,
-  ...grade4Levels,
-  ...grade5Levels,
-  ...grade6Levels,
-  ...grade7Levels,
-  ...grade8Levels,
-  ...grade9Levels,
-  ...grade10Levels,
-  ...grade11Levels,
+  {
+    id: '1-1',
+    title: 'Деньги и их назначение',
+    description: 'Узнайте, для чего нужны деньги',
+    grade: 1,
+    questions: [
+      {
+        id: 'q1',
+        text: 'Для чего нужны деньги?',
+        choices: ['Для игр', 'Для покупки товаров', 'Для украшения', 'Для коллекции'],
+        correctIndex: 1,
+        explanation: 'Деньги нужны для обмена на товары и услуги.',
+      },
+    ],
+    reward: { coinsPerCorrect: 10, pointsPerCorrect: 10 },
+  },
+  // ... остальные уровни будут добавлены после загрузки с API
 ]
 
 export const useGameStore = create<GameState>((set, get) => ({

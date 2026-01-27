@@ -1,8 +1,11 @@
 import api from './client'
 
 // Студенты
-export const studentLogin = (name: string, grade: number) =>
-  api.post('/students/login', { name, grade })
+export const studentRegister = (name: string, email: string, password: string) =>
+  api.post('/students/register', { name, email, password })
+
+export const studentLogin = (email: string, password: string) =>
+  api.post('/students/login', { email, password })
 
 export const getStudentProfile = () => api.get('/students/profile')
 export const updateStudentProfile = (data: any) => api.put('/students/profile', data)
@@ -18,8 +21,11 @@ export const getStudentResultsByGrade = (grade: number) =>
   api.get(`/results/student/grade/${grade}`)
 
 // Учителя
-export const teacherLogin = (username: string, password: string) =>
-  api.post('/teachers/login', { username, password })
+export const teacherRegister = (name: string, email: string, password: string, school?: string) =>
+  api.post('/teachers/register', { name, email, password, school })
+
+export const teacherLogin = (email: string, password: string) =>
+  api.post('/teachers/login', { email, password })
 
 export const getTeacherProfile = () => api.get('/teachers/profile')
 export const getStudents = () => api.get('/teachers/students')
