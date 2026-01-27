@@ -2,7 +2,6 @@ import React, { FC } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useGameStore } from '@store/gameStore'
 import { Level } from '@types'
-import '@styles/GameGradePage.css'
 
 export const GameGradePage: FC = () => {
   const navigate = useNavigate()
