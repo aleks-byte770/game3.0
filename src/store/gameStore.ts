@@ -19,7 +19,7 @@ interface GameState {
   setLevels: (levels: Level[]) => void
   setCurrentGrade: (grade: number) => void
   setCurrentLevel: (level: Level) => void
-  getLevelsByGrade: (grade: number) => Level[]
+  getLevelsByGrade: (grade: number | string) => Level[]
 }
 
 // Объединяем все уровни из файлов
@@ -45,7 +45,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   setCurrentGrade: (grade) => set({ currentGrade: grade }),
   setCurrentLevel: (level) => set({ currentLevel: level }),
   getLevelsByGrade: (grade) => {
+    const gradeNum = Number(grade)
     const { levels } = get()
-    return levels.filter((level) => level.grade === grade)
+    return levels.filter((level) => level.grade === gradeNum)
   },
 }))
