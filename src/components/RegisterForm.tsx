@@ -47,9 +47,9 @@ export const RegisterForm: FC = () => {
         response = await api.teacherLogin(formData.email, formData.password)
       }
 
-      const { student, teacher, token } = (response as any).data
+      const { student, teacher, user, token } = (response as any).data
 
-      const userData = student || teacher
+      const userData = student || teacher || user
       if (!userData || !token) {
         throw new Error('Некорректный ответ от сервера')
       }
@@ -144,7 +144,7 @@ export const RegisterForm: FC = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="your@email.com или moris"
+                  placeholder="your@email.com"
                   required
                   disabled={loading}
                 />

