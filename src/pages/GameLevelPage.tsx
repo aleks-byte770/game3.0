@@ -62,8 +62,10 @@ export const GameLevelPage: FC = () => {
   const handleNext = async () => {
     if (isLastQuestion) {
       // Конец игры, сохраняем результат
-      const timeTaken = Math.round((Date.now() - startTime) / 1000)
-      const finalScore = score + (selectedChoice === question.correctIndex && !isAnswered ? 1 : 0)
+      const timeTaken = Math.round((Date.now() - startTime) / 1000);
+      // Состояние score уже обновлено после ответа на последний вопрос
+      const finalScore = score;
+
       try {
         await api.saveResult({
           studentName: user?.name || 'Аноним',
@@ -72,13 +74,17 @@ export const GameLevelPage: FC = () => {
           correctAnswers: finalScore,
           totalQuestions: currentLevel.questions.length,
           timeTaken: timeTaken,
-        })
-        alert(`Тест завершен! Правильных ответов: ${finalScore} из ${currentLevel.questions.length}`)
-        navigate(`/game/grade/${currentLevel.grade}`)
-      } catch (error) {
-        console.error("Ошибка сохранения результатов:", error)
-        alert("Не удалось сохранить результаты.")
-        navigate(`/game/grade/${currentLevel.grade}`)
+        });
+        alert(`Тест завершен! Правильных ответов: ${finalScore} из ${currentLevel.questions.length}`);
+        navigate(`/game/grade/${currentLevel.grade}`);
+      } catch (err: any) {
+        console.error("Ошибка сохранения результатов:", err);
+        let errorMessage = "Не удалось сохранить результаты.";
+        if (err.response?.status === 404) {
+          errorMessage += " (Ошибка 404: API не найдено. Проверьте, что бэкенд запущен и доступен.)";
+        }
+        alert(errorMessage);
+        navigate(`/game/grade/${currentLevel.grade}`);
       }
     } else {
       // Следующий вопрос
