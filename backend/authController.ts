@@ -66,8 +66,11 @@ export const login = async (req: Request, res: Response) => {
   try {
     const { email, password, role } = req.body;
 
-    // Поиск пользователя
-    const user = await User.findOne({ email });
+    // Поиск пользователя по email или по имени (ФИО)
+    // ПРЕДУПРЕЖДЕНИЕ: Вход по ФИО не является безопасным, если ФИО не уникальны.
+    const user = await User.findOne({
+      $or: [{ email: email }, { name: email }],
+    });
 
     // Проверка пароля и роли (чтобы ученик не вошел как учитель)
     if (user && (await bcrypt.compare(password, user.password))) {
