@@ -11,7 +11,7 @@ const generateToken = (id: string, role: string) => {
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, grade } = req.body;
 
     // Проверка существования пользователя
     const userExists = await User.findOne({ email });
@@ -29,6 +29,7 @@ export const register = async (req: Request, res: Response) => {
       email,
       password: hashedPassword,
       role, // 'student' или 'teacher'
+      grade: role === 'student' ? grade : undefined,
     });
 
     if (user) {
