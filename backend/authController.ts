@@ -118,3 +118,53 @@ export const login = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Ошибка сервера при входе' });
   }
 };
+
+export const studentLogin = async (req: Request, res: Response) => {
+  try {
+    const { name, grade } = req.body;
+
+    if (!name || !grade) {
+      return res.status(400).json({ message: 'Необходимо указать ФИО и класс' });
+    }
+
+    const parsedGrade = parseInt(grade);
+    if (isNaN(parsedGrade)) {
+      return res.status(400).json({ message: 'Некорректный класс' });
+    }
+
+    // Поиск существующего студента по имени и классу
+    let user = await User.findOne({ name, grade: parsedGrade, role: 'student' });
+
+    if (!user) {
+      // Если студента нет, создаем его автоматически
+      // Генерируем технический username и пароль, так как они обязательны в модели User
+      const uniqueId = 'STU_' + Date.now() + Math.floor(Math.random() * 1000);
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(uniqueId, salt);
+
+      user = await User.create({
+        name,
+        username: uniqueId,
+        password: hashedPassword,
+        role: 'student',
+        grade: parsedGrade,
+        coins: 0
+      });
+    }
+
+    res.json({
+      user: {
+        id: user._id,
+        name: user.name,
+        username: user.username,
+        role: user.role,
+        grade: user.grade,
+        coins: user.coins
+      },
+      token: generateToken(user._id.toString(), user.role),
+    });
+  } catch (error: any) {
+    console.error('STUDENT_LOGIN_ERROR:', error);
+    res.status(500).json({ message: 'Ошибка входа студента', error: error.message });
+  }
+};

@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { register, login } from './authController';
+import { register, login, studentLogin } from './authController';
 import dbConnect from './db';
 
 dotenv.config();
@@ -39,10 +39,7 @@ router.post('/students/register', (req, res, next) => {
   next();
 }, register);
 
-router.post('/students/login', (req, res, next) => {
-  req.body.role = 'student';
-  next();
-}, login);
+router.post('/students/login', studentLogin);
 
 // Учителя
 router.post('/teachers/register', (req, res, next) => {
