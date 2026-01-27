@@ -3,6 +3,7 @@ import { useAuthStore } from '@store/authStore'
 import { RegisterForm } from '@components/RegisterForm'
 import { StudentHome } from '@pages/StudentHome'
 import { TeacherDashboard } from '@pages/TeacherDashboard'
+import { GamePage } from '@pages/GamePage'
 import './styles/index.css'
 
 function App() {
@@ -20,6 +21,12 @@ function App() {
         <Route
           path="/student"
           element={isAuthenticated && user?.role === 'student' ? <StudentHome /> : <Navigate to="/login" />}
+        />
+        
+        {/* Game routes */}
+        <Route
+          path="/game/grade/:grade"
+          element={isAuthenticated && user?.role === 'student' ? <GamePage /> : <Navigate to="/login" />}
         />
 
         {/* Teacher routes */}
