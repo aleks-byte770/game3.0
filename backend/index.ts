@@ -19,7 +19,7 @@ const connectDB = async (req: any, res: any, next: any) => {
     return next();
   }
   // Поддержка обоих вариантов названия переменной
-  const uri = process.env.MONGO_URI || process.env.MONGODB_URI;
+  const uri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb+srv://Vercel-Admin-gamebf:weJgrmk4djbfvZn6@gamebf.e3ndvpr.mongodb.net/?retryWrites=true&w=majority';
   
   if (!uri) {
     console.error('Database URI is missing');

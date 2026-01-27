@@ -50,6 +50,10 @@ export const RegisterForm: FC = () => {
       const { student, teacher, token } = (response as any).data
 
       const userData = student || teacher
+      if (!userData || !token) {
+        throw new Error('Некорректный ответ от сервера')
+      }
+
       setUser(userData)
       setToken(token)
 

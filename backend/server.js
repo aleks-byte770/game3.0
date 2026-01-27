@@ -16,7 +16,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Подключение к MongoDB
-const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/finance_game';
+const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://Vercel-Admin-gamebf:weJgrmk4djbfvZn6@gamebf.e3ndvpr.mongodb.net/?retryWrites=true&w=majority';
 
 mongoose.connect(mongoUri, {
   useNewUrlParser: true,
