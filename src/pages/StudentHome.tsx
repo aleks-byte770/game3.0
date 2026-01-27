@@ -12,7 +12,7 @@ export const StudentHome: FC = () => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user) {
+    if (!user || user.role !== 'student') {
       navigate('/login')
       return
     }

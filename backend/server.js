@@ -169,7 +169,15 @@ app.post('/api/teachers/login', async (req, res) => {
     await log.save();
 
     const token = generateToken({ teacherId: teacher._id, email, userType: 'teacher' });
-    res.json({ token, teacher: { _id: teacher._id, email, name: teacher.name, school: teacher.school } });
+    const userPayload = {
+      id: teacher._id,
+      name: teacher.name,
+      email: teacher.email,
+      school: teacher.school,
+      role: 'teacher',
+      createdAt: teacher.createdAt,
+    };
+    res.json({ token, user: userPayload });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Ошибка входа' });
