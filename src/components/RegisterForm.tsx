@@ -14,8 +14,6 @@ export const RegisterForm: FC = () => {
     password: '',
     confirmPassword: '',
   })
-  const [userType, setUserType] = useState<'student' | 'teacher'>('student')
-  const [grade, setGrade] = useState<number>(5) // Значение по умолчанию
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -41,15 +39,14 @@ export const RegisterForm: FC = () => {
     setLoading(true)
 
     try {
-      const response = userType === 'student'
-        ? await api.studentRegister(formData.name, formData.email, formData.password, grade)
-        : await api.teacherRegister(formData.name, formData.email, formData.password)
+      // Регистрация теперь только для учителей
+      const response = await api.teacherRegister(formData.name, formData.email, formData.password)
 
       const { user, token } = (response as any).data
       setUser(user)
       setToken(token)
 
-      navigate(userType === 'student' ? '/student' : '/teacher')
+      navigate('/teacher')
     } catch (err: any) {
       if (err.response?.status === 404) {
         const apiUrl = import.meta.env.VITE_API_URL
@@ -70,44 +67,9 @@ export const RegisterForm: FC = () => {
     <div className="auth-container">
       <div className="auth-card">
         <h1>Финансовый Геймер</h1>
-        <p className="subtitle">Регистрация</p>
-
-        <div className="user-type-toggle">
-          <button
-            type="button"
-            className={`toggle-btn ${userType === 'student' ? 'active' : ''}`}
-            onClick={() => setUserType('student')}
-          >
-            Ученик
-          </button>
-          <button
-            type="button"
-            className={`toggle-btn ${userType === 'teacher' ? 'active' : ''}`}
-            onClick={() => setUserType('teacher')}
-          >
-            Учитель
-          </button>
-        </div>
+        <p className="subtitle">Регистрация для Учителя</p>
 
         <form onSubmit={handleSubmit}>
-          {userType === 'student' && (
-            <div className="form-group">
-              <label htmlFor="grade">Класс</label>
-              <select
-                id="grade"
-                value={grade}
-                onChange={(e) => setGrade(Number(e.target.value))}
-                disabled={loading}
-              >
-                {[...Array(11)].map((_, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    {i + 1} класс
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
           <div className="form-group">
             <label htmlFor="name">ФИО</label>
             <input

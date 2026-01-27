@@ -8,8 +8,12 @@ export const LoginForm: FC = () => {
   const setUser = useAuthStore((state) => state.setUser)
   const setToken = useAuthStore((state) => state.setToken)
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  // Состояние для всех типов пользователей
+  const [name, setName] = useState('') // ФИО для ученика
+  const [grade, setGrade] = useState<number>(5) // Класс для ученика
+  const [email, setEmail] = useState('') // Email для учителя
+  const [password, setPassword] = useState('') // Пароль для учителя
+
   const [userType, setUserType] = useState<'student' | 'teacher'>('student')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -20,16 +24,33 @@ export const LoginForm: FC = () => {
     setLoading(true)
 
     try {
-      const response =
-        userType === 'student'
-          ? await api.studentLogin(email, password)
-          : await api.teacherLogin(email, password)
+      if (userType === 'student') {
+        // Для ученика нет запроса к API, просто сохраняем данные в store
+        if (!name.trim() || !grade) {
+          setError('Пожалуйста, введите ФИО и выберите класс.')
+          setLoading(false)
+          return
+        }
+        const studentData = {
+          name: name.trim(),
+          grade: grade,
+          role: 'student',
+        }
+        setUser(studentData)
+        // Токен для ученика не устанавливается
+        setToken(null)
+        navigate('/student')
+        return
+      }
+
+      // Логика для учителя остается прежней
+      const response = await api.teacherLogin(email, password)
 
       const { user, token } = (response as any).data
       setUser(user)
       setToken(token)
 
-      navigate(userType === 'student' ? '/student' : '/teacher')
+      navigate('/teacher')
     } catch (err: any) {
       if (err.response?.status === 404) {
         const apiUrl = import.meta.env.VITE_API_URL
@@ -70,44 +91,79 @@ export const LoginForm: FC = () => {
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="email">Email или ФИО</label>
-            <input
-              id="email"
-              type="text"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com или Иван Петров"
-              required
-              disabled={loading}
-            />
-          </div>
+          {userType === 'student' ? (
+            <>
+              <div className="form-group">
+                <label htmlFor="name">Ваше ФИО</label>
+                <input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Например, Иван Петров"
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="grade">Ваш класс</label>
+                <select
+                  id="grade"
+                  value={grade}
+                  onChange={(e) => setGrade(Number(e.target.value))}
+                  disabled={loading}
+                >
+                  {[...Array(11)].map((_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {i + 1} класс
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="form-group">
+                <label htmlFor="email">Email</label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  required
+                  disabled={loading}
+                />
+              </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Пароль</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              disabled={loading}
-            />
-          </div>
+              <div className="form-group">
+                <label htmlFor="password">Пароль</label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  disabled={loading}
+                />
+              </div>
+            </>
+          )}
 
           {error && <div className="error-message">{error}</div>}
 
           <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Загрузка...' : 'Войти'}
+            {loading ? 'Загрузка...' : 'Начать игру'}
           </button>
         </form>
 
         <p className="auth-link">
-          Нет аккаунта?{' '}
-          <a href="/register">
-            {userType === 'student' ? 'Зарегистрироваться' : 'Регистрация учителя'}
-          </a>
+          {userType === 'teacher' && (
+            <>
+              Нет аккаунта? <a href="/register">Регистрация для учителя</a>
+            </>
+          )}
         </p>
       </div>
     </div>
