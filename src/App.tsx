@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from '@store/authStore'
-import { LoginForm } from '@components/LoginForm'
 import { RegisterForm } from '@components/RegisterForm'
 import { StudentHome } from '@pages/StudentHome'
 import { TeacherDashboard } from '@pages/TeacherDashboard'
@@ -14,8 +13,8 @@ function App() {
     <Router>
       <Routes>
         {/* Public routes */}
-        <Route path="/login" element={<LoginForm />} />
-        <Route path="/register" element={<RegisterForm />} />
+        <Route path="/login" element={<RegisterForm />} />
+        <Route path="/register" element={<Navigate to="/login" />} />
 
         {/* Student routes */}
         <Route
@@ -27,7 +26,11 @@ function App() {
         <Route
           path="/teacher"
           element={
-            isAuthenticated && user?.role === 'teacher' ? <TeacherDashboard /> : <Navigate to="/login" />
+            isAuthenticated && (user?.role === 'teacher' || user?.role === 'admin') ? (
+              <TeacherDashboard />
+            ) : (
+              <Navigate to="/login" />
+            )
           }
         />
 
