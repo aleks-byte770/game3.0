@@ -1,8 +1,8 @@
 import api from './client'
 
 // Студенты
-export const studentRegister = (name: string, email: string, password: string) =>
-  api.post('/students/register', { name, email, password })
+export const studentRegister = (name: string, email: string, password: string, grade: number) =>
+  api.post('/students/register', { name, email, password, grade })
 
 export const studentLogin = (email: string, password: string) =>
   api.post('/students/login', { email, password })
