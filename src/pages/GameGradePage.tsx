@@ -25,7 +25,7 @@ export const GameGradePage: FC = () => {
   return (
     <div className="game-grade-container">
       <header className="game-grade-header">
-        <button className="btn-back" onClick={() => navigate('/student/home')}>
+        <button className="btn-back" onClick={() => navigate('/student')}>
           &larr; Назад к классам
         </button>
         <h1>Уровни для {grade} класса</h1>
