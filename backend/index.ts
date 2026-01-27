@@ -1,8 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import mongoose from 'mongoose';
 import { register, login } from './authController';
+import dbConnect from './db';
 
 dotenv.config();
 
@@ -13,25 +13,15 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Подключение к MongoDB
-const connectDB = async (req: any, res: any, next: any) => {
-  if (mongoose.connection.readyState >= 1) {
-    return next();
+// Middleware для подключения к БД перед каждым запросом
+const dbMiddleware = async (req: any, res: any, next: any) => {
+  try {
+    await dbConnect();
+    next();
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    res.status(500).json({ message: 'Database connection failed' });
   }
-  // Поддержка обоих вариантов названия переменной
-  const uri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb+srv://Vercel-Admin-gamebf:weJgrmk4djbfvZn6@gamebf.e3ndvpr.mongodb.net/?retryWrites=true&w=majority';
-  
-  if (!uri) {
-    console.error('Database URI is missing');
-    return res.status(500).json({ message: 'Database configuration error' });
-  }
-  
-  await mongoose.connect(uri)
-    .then(() => next())
-    .catch((err) => {
-      console.error('MongoDB connection error:', err);
-      res.status(500).json({ message: 'Database connection failed' });
-    });
 };
 
 // Маршруты (Routes)
@@ -42,7 +32,7 @@ const connectDB = async (req: any, res: any, next: any) => {
 const router = express.Router();
 
 // Студенты
-router.use(connectDB); // Подключаем БД перед обработкой роутов
+router.use(dbMiddleware); // Используем новое middleware для подключения к БД
 
 router.post('/students/register', (req, res, next) => {
   req.body.role = 'student';
