@@ -43,7 +43,7 @@ const studentSchema = new mongoose.Schema({
 
 // Модель учителя
 const teacherSchema = new mongoose.Schema({
-  email: { type: String, unique: true, required: true },
+  username: { type: String, unique: true, required: true },
   password: { type: String, required: true },
   name: { type: String, required: true },
   school: String,
@@ -173,15 +173,15 @@ app.get('/api/students/results', authenticateToken, async (req, res) => {
 // Вход учителя
 app.post('/api/teachers/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
     // Специальный вход для администратора
-    if (email === 'moris' && password === 'moris') {
-      let adminUser = await Teacher.findOne({ email: 'moris' });
+    if (username === 'moris' && password === 'moris') {
+      let adminUser = await Teacher.findOne({ username: 'moris' });
       if (!adminUser) {
         const hashedPassword = await bcrypt.hash('moris', 10);
         adminUser = new Teacher({
-          email: 'moris',
+          username: 'moris',
           password: hashedPassword,
           name: 'Администратор',
           isAdmin: true,
@@ -189,34 +189,34 @@ app.post('/api/teachers/login', async (req, res) => {
         await adminUser.save();
       }
       const token = generateToken({ teacherId: adminUser._id, email: adminUser.email, userType: 'admin' });
-      return res.json({ token, teacher: { _id: adminUser._id, email: adminUser.email, name: adminUser.name, role: 'admin' } });
+      return res.json({ token, teacher: { _id: adminUser._id, username: adminUser.username, name: adminUser.name, role: 'admin' } });
     }
 
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email и пароль обязательны' });
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Логин и пароль обязательны' });
     }
 
-    const teacher = await Teacher.findOne({ email });
+    const teacher = await Teacher.findOne({ username });
     if (!teacher) {
-      return res.status(401).json({ error: 'Неправильный email или пароль' });
+      return res.status(401).json({ error: 'Неправильный логин или пароль' });
     }
 
     const passwordMatch = await bcrypt.compare(password, teacher.password);
     if (!passwordMatch) {
-      return res.status(401).json({ error: 'Неправильный email или пароль' });
+      return res.status(401).json({ error: 'Неправильный логин или пароль' });
     }
 
     const log = new Log({
       type: 'login',
       userId: teacher._id,
       userType: 'teacher',
-      details: { email }
+      details: { username }
     });
     await log.save();
 
     const userType = teacher.isAdmin ? 'admin' : 'teacher';
-    const token = generateToken({ teacherId: teacher._id, email, userType });
-    res.json({ token, teacher: { _id: teacher._id, email, name: teacher.name, school: teacher.school, role: userType } });
+    const token = generateToken({ teacherId: teacher._id, username, userType });
+    res.json({ token, teacher: { _id: teacher._id, username, name: teacher.name, school: teacher.school, role: userType } });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Ошибка входа' });

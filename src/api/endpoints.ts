@@ -18,8 +18,8 @@ export const getStudentResultsByGrade = (grade: number) =>
   api.get(`/results/student/grade/${grade}`)
 
 // Учителя
-export const teacherLogin = (email: string, password: string) =>
-  api.post('/teachers/login', { email, password })
+export const teacherLogin = (username: string, password: string) =>
+  api.post('/teachers/login', { username, password })
 
 export const getTeacherProfile = () => api.get('/teachers/profile')
 export const getStudents = () => api.get('/teachers/students')

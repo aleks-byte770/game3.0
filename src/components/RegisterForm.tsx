@@ -10,7 +10,7 @@ export const RegisterForm: FC = () => {
 
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
+    username: '',
     password: '',
     grade: '',
   })
@@ -39,12 +39,12 @@ export const RegisterForm: FC = () => {
         response = await api.studentLogin(formData.name, parseInt(formData.grade, 10))
       } else {
         // teacher
-        if (!formData.email || !formData.password) {
-          setError('Пожалуйста, введите email и пароль.')
+        if (!formData.username || !formData.password) {
+          setError('Пожалуйста, введите логин и пароль.')
           setLoading(false)
           return
         }
-        response = await api.teacherLogin(formData.email, formData.password)
+        response = await api.teacherLogin(formData.username, formData.password)
       }
 
       const { student, teacher, user, token } = (response as any).data
@@ -137,14 +137,14 @@ export const RegisterForm: FC = () => {
           ) : (
             <>
               <div className="form-group">
-                <label htmlFor="email">Email</label>
+                <label htmlFor="username">Логин</label>
                 <input
-                  id="email"
-                  type="email"
-                  name="email"
-                  value={formData.email}
+                  id="username"
+                  type="text"
+                  name="username"
+                  value={formData.username}
                   onChange={handleChange}
-                  placeholder="your@email.com"
+                  placeholder="Придумайте логин"
                   required
                   disabled={loading}
                 />
