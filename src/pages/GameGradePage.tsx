@@ -2,11 +2,13 @@ import React, { FC } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useGameStore } from '@store/gameStore'
 import { Level } from '@types'
-
 export const GameGradePage: FC = () => {
   const navigate = useNavigate()
   const { grade } = useParams<{ grade: string }>()
-  const getLevelsByGrade = useGameStore((state) => state.getLevelsByGrade)
+  const { getLevelsByGrade, setCurrentLevel } = useGameStore((state) => ({
+    getLevelsByGrade: state.getLevelsByGrade,
+    setCurrentLevel: state.setCurrentLevel,
+  }))
 
   if (!grade) {
     return <div>Класс не найден. <button onClick={() => navigate(-1)}>Назад</button></div>
@@ -15,10 +17,8 @@ export const GameGradePage: FC = () => {
   const levels = getLevelsByGrade(grade)
 
   const handleLevelClick = (level: Level) => {
-    // TODO: В будущем здесь будет переход на страницу с вопросами
-    console.log('Переход на уровень:', level.id)
-    alert(`Вы выбрали уровень: ${level.title}`)
-    // navigate(`/game/level/${level.id}`)
+    setCurrentLevel(level)
+    navigate(`/game/level/${level.id}`)
   }
 
   return (

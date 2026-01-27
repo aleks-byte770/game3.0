@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useAuthStore } from '@store/authStore'
 import { LoginForm } from '@components/LoginForm'
 import { RegisterForm } from '@components/RegisterForm'
-import { StudentHome, TeacherDashboard, GameGradePage } from '@pages'
+import { StudentHome, TeacherDashboard, GameGradePage, GameLevelPage } from '@pages'
 
 import './styles/index.css'
 
@@ -26,6 +26,12 @@ function App() {
           path="/game/grade/:grade"
           element={
             isAuthenticated && user?.role === 'student' ? <GameGradePage /> : <Navigate to="/login" />
+          }
+        />
+        <Route
+          path="/game/level/:levelId"
+          element={
+            isAuthenticated && user?.role === 'student' ? <GameLevelPage /> : <Navigate to="/login" />
           }
         />
 
