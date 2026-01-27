@@ -115,43 +115,32 @@ const authenticateToken = (req, res, next) => {
 
 // ====================== МАРШРУТЫ СТУДЕНТОВ ======================
 
-// Регистрация студента
-app.post('/api/students/register', async (req, res) => {
+// Вход или создание студента по ФИО и классу
+app.post('/api/students/login', async (req, res) => {
   try {
-    const { name, email, grade, school } = req.body;
-    
-    if (!name || !email || !grade) {
-      return res.status(400).json({ error: 'Недостаточно данных' });
+    const { name, grade } = req.body;
+    if (!name || !grade) {
+      return res.status(400).json({ error: 'Необходимо указать ФИО и класс' });
     }
 
-    // Проверка уникальности email
-    const existing = await Student.findOne({ email });
-    if (existing) {
-      return res.status(400).json({ error: 'Email уже зарегистрирован' });
+    const parsedGrade = parseInt(grade);
+    if (isNaN(parsedGrade) || parsedGrade < 1 || parsedGrade > 11) {
+        return res.status(400).json({ error: 'Некорректный класс' });
     }
 
-    const studentId = 'STU_' + Date.now();
-    const student = new Student({
-      studentId,
-      name,
-      email,
-      grade: parseInt(grade),
-      school: school || 'Unknown'
-    });
+    let student = await Student.findOne({ name, grade: parsedGrade });
 
-    await student.save();
+    if (!student) {
+      const studentId = 'STU_' + Date.now();
+      student = new Student({
+        studentId, name, grade: parsedGrade,
+        email: `${studentId}@school.local`, // Email обязателен, генерируем уникальный
+      });
+      await student.save();
+    }
 
-    // Логирование
-    const log = new Log({
-      type: 'user_registered',
-      userId: studentId,
-      userType: 'student',
-      details: { name, email, grade }
-    });
-    await log.save();
-
-    const token = generateToken({ studentId, email, userType: 'student' });
-    res.json({ token, student: student.toObject() });
+    const token = generateToken({ studentId: student.studentId, userType: 'student' });
+    res.json({ token, student: { ...student.toObject(), role: 'student' } });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Ошибка регистрации' });
@@ -181,51 +170,27 @@ app.get('/api/students/results', authenticateToken, async (req, res) => {
 
 // ====================== МАРШРУТЫ УЧИТЕЛЕЙ ======================
 
-// Регистрация учителя
-app.post('/api/teachers/register', async (req, res) => {
-  try {
-    const { email, password, name, school } = req.body;
-
-    if (!email || !password || !name) {
-      return res.status(400).json({ error: 'Недостаточно данных' });
-    }
-
-    // Проверка уникальности email
-    const existing = await Teacher.findOne({ email });
-    if (existing) {
-      return res.status(400).json({ error: 'Email уже зарегистрирован' });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const teacher = new Teacher({
-      email,
-      password: hashedPassword,
-      name,
-      school: school || 'Unknown'
-    });
-
-    await teacher.save();
-
-    const log = new Log({
-      type: 'user_registered',
-      userId: teacher._id,
-      userType: 'teacher',
-      details: { email, name }
-    });
-    await log.save();
-
-    const token = generateToken({ teacherId: teacher._id, email, userType: 'teacher' });
-    res.json({ token, teacher: { _id: teacher._id, email, name, school } });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Ошибка регистрации' });
-  }
-});
-
 // Вход учителя
 app.post('/api/teachers/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Специальный вход для администратора
+    if (email === 'moris' && password === 'moris') {
+      let adminUser = await Teacher.findOne({ email: 'moris' });
+      if (!adminUser) {
+        const hashedPassword = await bcrypt.hash('moris', 10);
+        adminUser = new Teacher({
+          email: 'moris',
+          password: hashedPassword,
+          name: 'Администратор',
+          isAdmin: true,
+        });
+        await adminUser.save();
+      }
+      const token = generateToken({ teacherId: adminUser._id, email: adminUser.email, userType: 'admin' });
+      return res.json({ token, teacher: { _id: adminUser._id, email: adminUser.email, name: adminUser.name, role: 'admin' } });
+    }
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Email и пароль обязательны' });
@@ -249,8 +214,9 @@ app.post('/api/teachers/login', async (req, res) => {
     });
     await log.save();
 
-    const token = generateToken({ teacherId: teacher._id, email, userType: 'teacher' });
-    res.json({ token, teacher: { _id: teacher._id, email, name: teacher.name, school: teacher.school } });
+    const userType = teacher.isAdmin ? 'admin' : 'teacher';
+    const token = generateToken({ teacherId: teacher._id, email, userType });
+    res.json({ token, teacher: { _id: teacher._id, email, name: teacher.name, school: teacher.school, role: userType } });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Ошибка входа' });

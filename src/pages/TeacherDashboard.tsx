@@ -12,7 +12,7 @@ export const TeacherDashboard: FC = () => {
   const [activeTab, setActiveTab] = useState<'students' | 'results' | 'groups'>('students')
 
   useEffect(() => {
-    if (!user || user.role !== 'teacher') {
+    if (!user || (user.role !== 'teacher' && user.role !== 'admin')) {
       navigate('/login')
       return
     }
