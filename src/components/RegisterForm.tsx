@@ -15,6 +15,7 @@ export const RegisterForm: FC = () => {
     confirmPassword: '',
   })
   const [userType, setUserType] = useState<'student' | 'teacher'>('student')
+  const [grade, setGrade] = useState<number>(5) // Значение по умолчанию
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -41,7 +42,7 @@ export const RegisterForm: FC = () => {
 
     try {
       const response = userType === 'student'
-        ? await api.studentRegister(formData.name, formData.email, formData.password)
+        ? await api.studentRegister(formData.name, formData.email, formData.password, grade)
         : await api.teacherRegister(formData.name, formData.email, formData.password)
 
       const { user, token } = (response as any).data
@@ -89,6 +90,24 @@ export const RegisterForm: FC = () => {
         </div>
 
         <form onSubmit={handleSubmit}>
+          {userType === 'student' && (
+            <div className="form-group">
+              <label htmlFor="grade">Класс</label>
+              <select
+                id="grade"
+                value={grade}
+                onChange={(e) => setGrade(Number(e.target.value))}
+                disabled={loading}
+              >
+                {[...Array(11)].map((_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {i + 1} класс
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="form-group">
             <label htmlFor="name">ФИО</label>
             <input

@@ -32,6 +32,7 @@ const studentSchema = new mongoose.Schema({
   studentId: { type: String, unique: true, required: true },
   name: { type: String, required: true },
   email: { type: String, required: true },
+  password: { type: String, required: true },
   grade: { type: Number, required: true, min: 1, max: 11 },
   school: String,
   score: { type: Number, default: 0 },
@@ -118,9 +119,9 @@ const authenticateToken = (req, res, next) => {
 // Регистрация студента
 app.post('/api/students/register', async (req, res) => {
   try {
-    const { name, email, grade, school } = req.body;
+    const { name, email, password, grade, school } = req.body;
     
-    if (!name || !email || !grade) {
+    if (!name || !email || !password || !grade) {
       return res.status(400).json({ error: 'Недостаточно данных' });
     }
 
@@ -130,11 +131,13 @@ app.post('/api/students/register', async (req, res) => {
       return res.status(400).json({ error: 'Email уже зарегистрирован' });
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
     const studentId = 'STU_' + Date.now();
     const student = new Student({
       studentId,
       name,
       email,
+      password: hashedPassword,
       grade: parseInt(grade),
       school: school || 'Unknown'
     });
@@ -155,6 +158,35 @@ app.post('/api/students/register', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Ошибка регистрации' });
+  }
+});
+
+// Вход студента
+app.post('/api/students/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email и пароль обязательны' });
+    }
+
+    const student = await Student.findOne({ email });
+    if (!student) {
+      return res.status(401).json({ error: 'Неправильный email или пароль' });
+    }
+
+    const passwordMatch = await bcrypt.compare(password, student.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ error: 'Неправильный email или пароль' });
+    }
+
+    const token = generateToken({ studentId: student.studentId, email, userType: 'student' });
+    // Не отправляем пароль обратно
+    const { password: _, ...studentData } = student.toObject();
+    res.json({ token, student: studentData });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Ошибка входа' });
   }
 });
 
