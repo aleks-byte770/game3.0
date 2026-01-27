@@ -4,6 +4,29 @@ import { LoginForm } from '@components/LoginForm'
 import { RegisterForm } from '@components/RegisterForm'
 import { StudentHome } from '@pages/StudentHome'
 import { TeacherDashboard } from '@pages/TeacherDashboard'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { StudentHome, GameGradePage } from './pages';
+
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        {/* Ваши существующие маршруты */}
+        <Route path="/student/home" element={<StudentHome />} />
+        <Route path="/login" element={...} /> 
+        
+        {/* 👇 ДОБАВЬТЕ ЭТОТ МАРШРУТ 👇 */}
+        <Route path="/game/grade/:grade" element={<GameGradePage />} />
+
+        {/* Другие маршруты... */}
+      </Routes>
+    </Router>
+  );
+}
+
+export default App;
+
 import './styles/index.css'
 
 function App() {
