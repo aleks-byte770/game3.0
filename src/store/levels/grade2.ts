@@ -1,4 +1,4 @@
-import { Level } from '@types';
+import type { Level } from '../../types/index'
 
 export const grade2Levels: Level[] = [
   // ================= 2 КЛАСС =================
@@ -41,4 +41,3 @@ export const grade2Levels: Level[] = [
     reward: { coinsPerCorrect: 5, pointsPerCorrect: 5 },
   },
 ]
-
