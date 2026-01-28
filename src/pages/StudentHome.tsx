@@ -22,8 +22,8 @@ export const StudentHome: FC = () => {
   const loadGrades = async () => {
     try {
       setLoading(true)
-      // Загружаем уровни для каждого класса (1-11)
-      const gradeList = Array.from({ length: 11 }, (_, i) => i + 1)
+      // Загружаем уровни для каждого класса (1-12)
+      const gradeList = Array.from({ length: 12 }, (_, i) => i + 1)
       setGrades(gradeList)
     } catch (error) {
       console.error('Ошибка загрузки классов:', error)

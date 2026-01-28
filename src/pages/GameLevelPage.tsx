@@ -24,6 +24,7 @@ export const GameLevelPage: FC = () => {
   const [score, setScore] = useState(0)
   const [coins, setCoins] = useState(0)
   const [startTime] = useState(Date.now())
+  const [message, setMessage] = useState<string | null>(null)
 
   // Эффект для поиска и установки текущего уровня, если он не установлен (например, при перезагрузке страницы)
   useEffect(() => {
@@ -75,16 +76,20 @@ export const GameLevelPage: FC = () => {
           totalQuestions: currentLevel.questions.length,
           timeTaken: timeTaken,
         });
-        alert(`Тест завершен! Правильных ответов: ${finalScore} из ${currentLevel.questions.length}`);
-        navigate(`/game/grade/${currentLevel.grade}`);
+        setMessage(`Тест завершен! Правильных ответов: ${finalScore} из ${currentLevel.questions.length}`);
+        setTimeout(() => {
+          navigate(`/game/grade/${currentLevel.grade}`);
+        }, 2000);
       } catch (err: any) {
         console.error("Ошибка сохранения результатов:", err);
         let errorMessage = "Не удалось сохранить результаты.";
         if (err.response?.status === 404) {
           errorMessage += " (Ошибка 404: API не найдено. Проверьте, что бэкенд запущен и доступен.)";
         }
-        alert(errorMessage);
-        navigate(`/game/grade/${currentLevel.grade}`);
+        setMessage(errorMessage);
+        setTimeout(() => {
+          navigate(`/game/grade/${currentLevel.grade}`);
+        }, 2000);
       }
     } else {
       // Следующий вопрос
@@ -105,6 +110,12 @@ export const GameLevelPage: FC = () => {
           ></div>
         </div>
       </header>
+
+      {message && (
+        <div className="notification">
+          <p>{message}</p>
+        </div>
+      )}
 
       <main className="question-container">
         <h2>Вопрос {currentQuestionIndex + 1}/{currentLevel.questions.length}</h2>
