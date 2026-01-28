@@ -17,9 +17,9 @@ interface GameState {
   currentGrade: number | null
   currentLevel: Level | null
   setLevels: (levels: Level[]) => void
-  setCurrentGrade: (grade: number) => void
+  setCurrentGrade: (grade: number | string) => void
   setCurrentLevel: (level: Level) => void
-  getLevelsByGrade: (grade: number) => Level[]
+  getLevelsByGrade: (grade: number | string) => Level[]
 }
 
 // Дефолтные уровни для каждого класса
@@ -42,10 +42,11 @@ export const useGameStore = create<GameState>((set, get) => ({
   currentGrade: null,
   currentLevel: null,
   setLevels: (levels) => set({ levels }),
-  setCurrentGrade: (grade) => set({ currentGrade: grade }),
+  setCurrentGrade: (grade) => set({ currentGrade: Number(grade) }),
   setCurrentLevel: (level) => set({ currentLevel: level }),
   getLevelsByGrade: (grade) => {
     const { levels } = get()
-    return levels.filter((level) => level.grade === grade)
+    const targetGrade = Number(grade)
+    return levels.filter((level) => level.grade === targetGrade)
   },
 }))
