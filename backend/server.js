@@ -22,10 +22,36 @@ mongoose.connect(mongoUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
-  .then(() => console.log('✅ MongoDB подключена'))
+  .then(() => {
+    console.log('✅ MongoDB подключена');
+    seedInitialData(); // Вызываем функцию для создания начальных данных
+  })
   .catch(err => console.error('❌ Ошибка MongoDB:', err));
 
 // ====================== МОДЕЛИ ======================
+
+// Функция для создания начальных данных (учителей)
+async function seedInitialData() {
+  try {
+    const teacherCount = await Teacher.countDocuments();
+    // Создаем учителей, только если их нет в базе
+    if (teacherCount === 0) {
+      console.log('Учителя не найдены, создаю начальные данные...');
+      const teachersToSeed = [
+        { name: 'Мария Ивановна Петрова', username: 'm_ivanova', password: 'password123' },
+        { name: 'Петр Сергеевич Сидоров', username: 'p_sidorov', password: 'password456' },
+      ];
+
+      for (const teacherData of teachersToSeed) {
+        const hashedPassword = await bcrypt.hash(teacherData.password, 10);
+        await new Teacher({ ...teacherData, password: hashedPassword }).save();
+      }
+      console.log('✅ Начальные данные учителей успешно созданы.');
+    }
+  } catch (error) {
+    console.error('❌ Ошибка при создании начальных данных:', error);
+  }
+}
 
 // Модель пользователя (ученика)
 const studentSchema = new mongoose.Schema({

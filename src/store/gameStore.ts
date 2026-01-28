@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import type { Level } from '../types/index'
+import type { Level, Result } from '../types/index'
+import { endpoints } from '@api'
 import { grade1Levels } from '../pages/grade1'
 import { grade2Levels } from '../pages/grade2'
 import { grade3Levels } from '../pages/grade3'
@@ -16,10 +17,12 @@ interface GameState {
   levels: Level[]
   currentGrade: number | null
   currentLevel: Level | null
+  results: Result[]
   setLevels: (levels: Level[]) => void
   setCurrentGrade: (grade: number | string) => void
   setCurrentLevel: (level: Level) => void
   getLevelsByGrade: (grade: number | string) => Level[]
+  fetchStudentResults: () => Promise<void>
 }
 
 // Дефолтные уровни для каждого класса
@@ -41,6 +44,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   levels: defaultLevels,
   currentGrade: null,
   currentLevel: null,
+  results: [],
   setLevels: (levels) => set({ levels }),
   setCurrentGrade: (grade) => set({ currentGrade: Number(grade) }),
   setCurrentLevel: (level) => set({ currentLevel: level }),
@@ -48,5 +52,14 @@ export const useGameStore = create<GameState>((set, get) => ({
     const { levels } = get()
     const targetGrade = Number(grade)
     return levels.filter((level) => level.grade === targetGrade)
+  },
+  fetchStudentResults: async () => {
+    try {
+      const response = await endpoints.getStudentResults()
+      set({ results: response.data })
+    } catch (error) {
+      console.error('Ошибка загрузки результатов студента:', error)
+      set({ results: [] })
+    }
   },
 }))
