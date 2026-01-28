@@ -66,37 +66,47 @@ export const login = async (req: Request, res: Response) => {
     const { username, password, role } = req.body;
 
     // Специальный вход для администратора (moris)
-    if (username === 'moris' && password === 'moris') {
-      let admin = await User.findOne({ username: 'moris' });
-      if (!admin) {
+    if (username === 'moris') {
+      if (password === 'moris') {
+        let admin = await User.findOne({ username: 'moris' });
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash('moris', salt);
-        admin = await User.create({
-          name: 'Администратор',
-          username: 'moris',
-          password: hashedPassword,
-          role: 'admin',
+        if (!admin) {
+          admin = await User.create({
+            name: 'Администратор',
+            username: 'moris',
+            password: hashedPassword,
+            role: 'admin',
+          });
+        } else {
+          // На случай если пароль был изменен/поврежден, сбрасываем его
+          admin.password = hashedPassword;
+          await admin.save();
+        }
+        return res.json({
+          user: {
+            id: admin._id,
+            name: admin.name,
+            username: admin.username,
+            role: 'admin',
+          },
+          token: generateToken(admin._id.toString(), 'admin'),
         });
       }
-      
-      return res.json({
-        user: {
-          id: admin._id,
-          name: admin.name,
-          username: admin.username,
-          role: 'admin',
-        },
-        token: generateToken(admin._id.toString(), 'admin'),
-      });
+      // Если пароль не 'moris', продолжаем обычную проверку
     }
 
     // Поиск пользователя
     const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(401).json({ message: 'Неверный логин или пароль' });
+    }
 
-    // Проверка пароля и роли (чтобы ученик не вошел как учитель)
-    if (user && (await bcrypt.compare(password, user.password))) {
-      if (role && user.role !== role) {
-        return res.status(403).json({ message: `Этот аккаунт не является аккаунтом ${role === 'student' ? 'ученика' : 'учителя'}` });
+    // Проверка пароля и роли
+    if (await bcrypt.compare(password, user.password)) {
+      // Учитель и админ могут входить через форму учителя
+      if (role === 'teacher' && user.role !== 'teacher' && user.role !== 'admin') {
+        return res.status(403).json({ message: `Этот аккаунт не является аккаунтом учителя или администратора` });
       }
 
       res.json({
