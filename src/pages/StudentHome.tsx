@@ -8,22 +8,34 @@ export const StudentHome: FC = () => {
   const navigate = useNavigate()
   const user = useAuthStore((state: any) => state.user)
   const logout = useAuthStore((state: any) => state.logout)
+  const setUser = useAuthStore((state: any) => state.setUser)
   const [grades, setGrades] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user || user.role !== 'student') {
+    if (!user) {
       navigate('/login')
       return
     }
     loadGrades()
-  }, [user, navigate])
+    loadProfile()
+  }, [navigate]) // Убрал user из зависимостей, чтобы не зацикливать
+
+  const loadProfile = async () => {
+    try {
+      const response = await api.getStudentProfile()
+      // Обновляем данные пользователя в стейте (монеты, уровни)
+      setUser(response.data)
+    } catch (error) {
+      console.error('Ошибка загрузки профиля:', error)
+    }
+  }
 
   const loadGrades = async () => {
     try {
       setLoading(true)
-      // Загружаем уровни для каждого класса (1-12)
-      const gradeList = Array.from({ length: 12 }, (_, i) => i + 1)
+      // Загружаем уровни для каждого класса (1-11)
+      const gradeList = Array.from({ length: 11 }, (_, i) => i + 1)
       setGrades(gradeList)
     } catch (error) {
       console.error('Ошибка загрузки классов:', error)
@@ -85,11 +97,11 @@ export const StudentHome: FC = () => {
           <h3>Ваша статистика</h3>
           <div className="stats-grid">
             <div className="stat-card">
-              <div className="stat-value">0</div>
+              <div className="stat-value">{user?.completedLevels?.length || 0}</div>
               <div className="stat-label">Завершено уровней</div>
             </div>
             <div className="stat-card">
-              <div className="stat-value">0</div>
+              <div className="stat-value">{user?.coins || 0}</div>
               <div className="stat-label">Монет заработано</div>
             </div>
             <div className="stat-card">

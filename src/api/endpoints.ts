@@ -1,32 +1,34 @@
 import api from './client'
 
-// Уровни
+// === Студенты ===
+export const studentLogin = (name: string, grade: number) =>
+  api.post('/students/login', { name, grade })
+
+export const getStudentProfile = () => api.get('/students/profile')
+export const updateStudentProfile = (data: any) => api.put('/students/profile', data)
+
+// === Уровни ===
 export const getAllLevels = () => api.get('/levels')
 export const getLevelsByGrade = (grade: number) => api.get(`/levels/grade/${grade}`)
 
-// Результаты тестов
-export const saveResult = (data: {
-  studentName: string
-  levelId: string
-  grade: number
-  correctAnswers: number
-  totalQuestions: number
-  timeTaken: number
-}) => api.post('/results', data)
+// === Результаты тестов ===
+export const saveResult = (data: any) => api.post('/results', data)
+export const getStudentResults = () => api.get('/results/student')
+export const getStudentResultsByGrade = (grade: number) =>
+  api.get(`/results/student/grade/${grade}`)
 
-// Учителя
-export const teacherRegister = (name: string, email: string, password: string, school?: string) =>
-  api.post('/teachers/register', { name, email, password, school })
-
-export const teacherLogin = (email: string, password: string) =>
-  api.post('/teachers/login', { email, password })
+// === Учителя ===
+export const teacherLogin = (username: string, password: string) =>
+  api.post('/teachers/login', { username, password })
 
 export const getTeacherProfile = () => api.get('/teachers/profile')
-export const getTeacherResults = () => api.get('/teachers/results')
+export const getStudents = () => api.get('/teachers/students')
+export const getTeacherStudentResults = (studentId: string) =>
+  api.get(`/teachers/students/${studentId}/results`)
 export const createGroup = (name: string) => api.post('/teachers/groups', { name })
 export const getGroups = () => api.get('/teachers/groups')
 
-// Админ
+// === Админ ===
 export const getLogs = () => api.get('/admin/logs')
 export const getStats = () => api.get('/admin/stats')
 export const deleteUser = (userId: string) => api.delete(`/admin/users/${userId}`)

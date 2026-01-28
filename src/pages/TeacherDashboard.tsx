@@ -7,23 +7,24 @@ export const TeacherDashboard: FC = () => {
   const navigate = useNavigate()
   const user = useAuthStore((state: any) => state.user)
   const logout = useAuthStore((state: any) => state.logout)
-  const [results, setResults] = useState<any[]>([])
+  const [students, setStudents] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'students' | 'results' | 'groups'>('students')
 
   useEffect(() => {
-    if (!user || user.role !== 'teacher') {
+    if (!user || (user.role !== 'teacher' && user.role !== 'admin')) {
       navigate('/login')
       return
     }
-    loadResults()
+    loadStudents()
   }, [user, navigate])
 
-  const loadResults = async () => {
+  const loadStudents = async () => {
     try {
       setLoading(true)
-      const response = await api.getTeacherResults()
-      setResults(response.data)
+      // const data = await api.getStudents()
+      // setStudents(data)
+      setStudents([]) // Пока пусто, будет заполнено из API
     } catch (error) {
       console.error('Ошибка загрузки учеников:', error)
     } finally {
@@ -36,10 +37,6 @@ export const TeacherDashboard: FC = () => {
     navigate('/login')
   }
 
-  const formatTime = (seconds: number) => {
-    if (!seconds) return 'N/A'
-    return new Date(seconds * 1000).toISOString().slice(14, 19) // MM:SS
-  }
   return (
     <div className="teacher-container">
       <header className="teacher-header">
@@ -76,44 +73,57 @@ export const TeacherDashboard: FC = () => {
       </nav>
 
       <main className="teacher-main">
-        {activeTab === 'results' && (
-          <section className="results-section">
+        {activeTab === 'students' && (
+          <section className="students-section">
             <div className="section-header">
-              <h2>Результаты учеников</h2>
+              <h2>Управление учениками</h2>
+              <button className="btn btn-primary">+ Добавить ученика</button>
             </div>
 
             {loading ? (
               <div className="loading">Загрузка...</div>
-            ) : results.length === 0 ? (
+            ) : students.length === 0 ? (
               <div className="empty-state">
-                <p>Пока нет результатов. Результаты появятся здесь, когда ученики пройдут тесты.</p>
+                <p>Нет учеников. Начните добавлять учеников для отслеживания их результатов.</p>
               </div>
             ) : (
-              <table className="results-table">
+              <table className="students-table">
                 <thead>
                   <tr>
-                    <th>ФИО ученика</th>
+                    <th>Имя</th>
+                    <th>Email</th>
                     <th>Класс</th>
-                    <th>Уровень</th>
-                    <th>Результат</th>
-                    <th>Время выполнения</th>
-                    <th>Дата</th>
+                    <th>Статус</th>
+                    <th>Действия</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {results.map((result) => (
-                    <tr key={result._id}>
-                      <td>{result.studentName}</td>
-                      <td>{result.grade}</td>
-                      <td>{result.levelId}</td>
-                      <td>{`${result.correctAnswers} / ${result.totalQuestions} (${result.percentage}%)`}</td>
-                      <td>{formatTime(result.timeTaken)}</td>
-                      <td>{new Date(result.completedAt).toLocaleDateString()}</td>
+                  {students.map((student) => (
+                    <tr key={student.id}>
+                      <td>{student.name}</td>
+                      <td>{student.email}</td>
+                      <td>{student.grade}</td>
+                      <td>
+                        <span className="badge badge-success">Активен</span>
+                      </td>
+                      <td>
+                        <button className="btn-small">Результаты</button>
+                        <button className="btn-small btn-danger">Удалить</button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             )}
+          </section>
+        )}
+
+        {activeTab === 'results' && (
+          <section className="results-section">
+            <h2>Результаты тестирования</h2>
+            <div className="empty-state">
+              <p>Результаты появятся здесь, когда ученики пройдут тесты.</p>
+            </div>
           </section>
         )}
 
@@ -124,15 +134,6 @@ export const TeacherDashboard: FC = () => {
             <div className="empty-state">
               <p>Нет групп. Создавайте группы для организации учеников по классам.</p>
             </div>
-          </section>
-        )}
-
-        {activeTab === 'students' && (
-          <section>
-             <div className="empty-state">
-                <p>Раздел "Ученики" больше не используется.</p>
-                <p>Все данные о прохождении тестов теперь находятся во вкладке "Результаты".</p>
-              </div>
           </section>
         )}
       </main>

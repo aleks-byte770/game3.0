@@ -1,17 +1,16 @@
 import { create } from 'zustand'
 import type { Level } from '../types/index'
-import { grade1Levels } from './levels/grade1'
-import { grade2Levels } from './levels/grade2'
-import { grade3Levels } from './levels/grade3'
-import { grade4Levels } from './levels/grade4'
-import { grade5Levels } from './levels/grade5'
-import { grade6Levels } from './levels/grade6'
-import { grade7Levels } from './levels/grade7'
-import { grade8Levels } from './levels/grade8'
-import { grade9Levels } from './levels/grade9'
-import { grade10Levels } from './levels/grade10'
-import { grade11Levels } from './levels/grade11'
-import { grade12Levels } from './levels/grade12'
+import { grade1Levels } from '../pages/grade1'
+import { grade2Levels } from '../pages/grade2'
+import { grade3Levels } from '../pages/grade3'
+import { grade4Levels } from '../pages/grade4'
+import { grade5Levels } from '../pages/grade5'
+import { grade6Levels } from '../pages/grade6'
+import { grade7Levels } from '../pages/grade7'
+import { grade8Levels } from '../pages/grade8'
+import { grade9Levels } from '../pages/grade9'
+import { grade10Levels } from '../pages/grade10'
+import { grade11Levels } from '../pages/grade11'
 
 interface GameState {
   levels: Level[]
@@ -20,11 +19,11 @@ interface GameState {
   setLevels: (levels: Level[]) => void
   setCurrentGrade: (grade: number) => void
   setCurrentLevel: (level: Level) => void
-  getLevelsByGrade: (grade: number | string) => Level[]
+  getLevelsByGrade: (grade: number) => Level[]
 }
 
-// Объединяем все уровни из файлов
-const allLevels: Level[] = [
+// Дефолтные уровни для каждого класса
+const defaultLevels: Level[] = [
   ...grade1Levels,
   ...grade2Levels,
   ...grade3Levels,
@@ -36,19 +35,17 @@ const allLevels: Level[] = [
   ...grade9Levels,
   ...grade10Levels,
   ...grade11Levels,
-  ...grade12Levels,
 ]
 
 export const useGameStore = create<GameState>((set, get) => ({
-  levels: allLevels,
+  levels: defaultLevels,
   currentGrade: null,
   currentLevel: null,
   setLevels: (levels) => set({ levels }),
   setCurrentGrade: (grade) => set({ currentGrade: grade }),
   setCurrentLevel: (level) => set({ currentLevel: level }),
   getLevelsByGrade: (grade) => {
-    const gradeNum = Number(grade)
     const { levels } = get()
-    return levels.filter((level) => level.grade === gradeNum)
+    return levels.filter((level) => level.grade === grade)
   },
 }))

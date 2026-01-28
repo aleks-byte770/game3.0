@@ -16,7 +16,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Подключение к MongoDB
-const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/finance_game';
+const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://Vercel-Admin-gamebf:weJgrmk4djbfvZn6@gamebf.e3ndvpr.mongodb.net/?retryWrites=true&w=majority';
 
 mongoose.connect(mongoUri, {
   useNewUrlParser: true,
@@ -27,9 +27,23 @@ mongoose.connect(mongoUri, {
 
 // ====================== МОДЕЛИ ======================
 
+// Модель пользователя (ученика)
+const studentSchema = new mongoose.Schema({
+  studentId: { type: String, unique: true, required: true },
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  grade: { type: Number, required: true, min: 1, max: 11 },
+  school: String,
+  score: { type: Number, default: 0 },
+  coins: { type: Number, default: 0 },
+  achievements: [String],
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
 // Модель учителя
 const teacherSchema = new mongoose.Schema({
-  email: { type: String, unique: true, required: true },
+  username: { type: String, unique: true, required: true },
   password: { type: String, required: true },
   name: { type: String, required: true },
   school: String,
@@ -45,13 +59,13 @@ const teacherSchema = new mongoose.Schema({
 
 // Модель результатов тестов
 const resultSchema = new mongoose.Schema({
-  studentName: { type: String, required: true },
-  levelId: { type: String, required: true },
+  studentId: { type: String, required: true },
+  levelId: { type: Number, required: true },
   grade: { type: Number, required: true },
   correctAnswers: Number,
   totalQuestions: Number,
   percentage: Number,
-  timeTaken: Number, // Время выполнения в секундах
+  coinsEarned: Number,
   completedAt: { type: Date, default: Date.now }
 });
 
@@ -64,6 +78,7 @@ const logSchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now }
 });
 
+const Student = mongoose.model('Student', studentSchema);
 const Teacher = mongoose.model('Teacher', teacherSchema);
 const Result = mongoose.model('Result', resultSchema);
 const Log = mongoose.model('Log', logSchema);
@@ -98,133 +113,165 @@ const authenticateToken = (req, res, next) => {
   next();
 };
 
-// ====================== МАРШРУТЫ УЧИТЕЛЕЙ ======================
+// ====================== МАРШРУТЫ СТУДЕНТОВ ======================
 
-// Регистрация учителя
-app.post('/api/teachers/register', async (req, res) => {
+// Вход или создание студента по ФИО и классу
+app.post('/api/students/login', async (req, res) => {
   try {
-    const { email, password, name, school } = req.body;
-
-    if (!email || !password || !name) {
-      return res.status(400).json({ error: 'Недостаточно данных' });
+    const { name, grade } = req.body;
+    if (!name || !grade) {
+      return res.status(400).json({ error: 'Необходимо указать ФИО и класс' });
     }
 
-    // Проверка уникальности email
-    const existing = await Teacher.findOne({ email });
-    if (existing) {
-      return res.status(400).json({ error: 'Email уже зарегистрирован' });
+    const parsedGrade = parseInt(grade);
+    if (isNaN(parsedGrade) || parsedGrade < 1 || parsedGrade > 11) {
+        return res.status(400).json({ error: 'Некорректный класс' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const teacher = new Teacher({
-      email,
-      password: hashedPassword,
-      name,
-      school: school || 'Unknown'
-    });
+    let student = await Student.findOne({ name, grade: parsedGrade });
 
-    await teacher.save();
+    if (!student) {
+      const studentId = 'STU_' + Date.now();
+      student = new Student({
+        studentId, name, grade: parsedGrade,
+        email: `${studentId}@school.local`, // Email обязателен, генерируем уникальный
+      });
+      await student.save();
+    }
 
-    const log = new Log({
-      type: 'user_registered',
-      userId: teacher._id,
-      userType: 'teacher',
-      details: { email, name }
-    });
-    await log.save();
-
-    const token = generateToken({ teacherId: teacher._id, email, userType: 'teacher' });
-    res.json({ token, teacher: { _id: teacher._id, email, name, school } });
+    const token = generateToken({ studentId: student.studentId, userType: 'student' });
+    res.json({ token, student: { ...student.toObject(), role: 'student' } });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Ошибка регистрации' });
   }
 });
 
+// Получение профиля студента
+app.get('/api/students/profile', authenticateToken, async (req, res) => {
+  try {
+    const student = await Student.findOne({ studentId: req.user.studentId });
+    if (!student) return res.status(404).json({ error: 'Студент не найден' });
+    res.json(student);
+  } catch (err) {
+    res.status(500).json({ error: 'Ошибка получения профиля' });
+  }
+});
+
+// Получение результатов студента
+app.get('/api/students/results', authenticateToken, async (req, res) => {
+  try {
+    const results = await Result.find({ studentId: req.user.studentId });
+    res.json(results);
+  } catch (err) {
+    res.status(500).json({ error: 'Ошибка получения результатов' });
+  }
+});
+
+// ====================== МАРШРУТЫ УЧИТЕЛЕЙ ======================
+
 // Вход учителя
 app.post('/api/teachers/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email и пароль обязательны' });
+    // Специальный вход для администратора
+    if (username === 'moris' && password === 'moris') {
+      let adminUser = await Teacher.findOne({ username: 'moris' });
+      if (!adminUser) {
+        const hashedPassword = await bcrypt.hash('moris', 10);
+        adminUser = new Teacher({
+          username: 'moris',
+          password: hashedPassword,
+          name: 'Администратор',
+          isAdmin: true,
+        });
+        await adminUser.save();
+      }
+      const token = generateToken({ teacherId: adminUser._id, email: adminUser.email, userType: 'admin' });
+      return res.json({ token, teacher: { _id: adminUser._id, username: adminUser.username, name: adminUser.name, role: 'admin' } });
     }
 
-    const teacher = await Teacher.findOne({ email });
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Логин и пароль обязательны' });
+    }
+
+    const teacher = await Teacher.findOne({ username });
     if (!teacher) {
-      return res.status(401).json({ error: 'Неправильный email или пароль' });
+      return res.status(401).json({ error: 'Неправильный логин или пароль' });
     }
 
     const passwordMatch = await bcrypt.compare(password, teacher.password);
     if (!passwordMatch) {
-      return res.status(401).json({ error: 'Неправильный email или пароль' });
+      return res.status(401).json({ error: 'Неправильный логин или пароль' });
     }
 
     const log = new Log({
       type: 'login',
       userId: teacher._id,
       userType: 'teacher',
-      details: { email }
+      details: { username }
     });
     await log.save();
 
-    const token = generateToken({ teacherId: teacher._id, email, userType: 'teacher' });
-    const userPayload = {
-      id: teacher._id,
-      name: teacher.name,
-      email: teacher.email,
-      school: teacher.school,
-      role: 'teacher',
-      createdAt: teacher.createdAt,
-    };
-    res.json({ token, user: userPayload });
+    const userType = teacher.isAdmin ? 'admin' : 'teacher';
+    const token = generateToken({ teacherId: teacher._id, username, userType });
+    res.json({ token, teacher: { _id: teacher._id, username, name: teacher.name, school: teacher.school, role: userType } });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Ошибка входа' });
   }
 });
 
-// Получение результатов всех учеников для панели учителя
-app.get('/api/teachers/results', authenticateToken, async (req, res) => {
+// Получение студентов учителя
+app.get('/api/teachers/students', authenticateToken, async (req, res) => {
   try {
     if (req.user.userType !== 'teacher' && req.user.userType !== 'admin') {
       return res.status(403).json({ error: 'Доступ запрещен' });
     }
 
-    // Просто возвращаем все результаты, учитель отфильтрует на фронте если надо
-    const results = await Result.find().sort({ completedAt: -1 });
-    res.json(results);
+    const teacher = await Teacher.findById(req.user.teacherId).populate('students');
+    res.json(teacher.students);
   } catch (err) {
-    res.status(500).json({ error: 'Ошибка получения результатов учеников' });
+    res.status(500).json({ error: 'Ошибка получения студентов' });
   }
 });
 
 // ====================== МАРШРУТЫ РЕЗУЛЬТАТОВ ======================
 
 // Сохранение результата теста
-app.post('/api/results', async (req, res) => { // Больше не требует аутентификации
+app.post('/api/results', authenticateToken, async (req, res) => {
   try {
-    const { studentName, levelId, grade, correctAnswers, totalQuestions, timeTaken } = req.body;
+    const { levelId, grade, correctAnswers, totalQuestions, coinsEarned } = req.body;
 
     const percentage = Math.round((correctAnswers / totalQuestions) * 100);
 
     const result = new Result({
-      studentName,
-      levelId,
-      grade,
+      studentId: req.user.studentId,
+      levelId: parseInt(levelId),
+      grade: parseInt(grade),
       correctAnswers,
       totalQuestions,
       percentage,
-      timeTaken
+      coinsEarned
     });
 
     await result.save();
 
+    // Обновление данных студента
+    const student = await Student.findOne({ studentId: req.user.studentId });
+    if (student) {
+      student.coins += coinsEarned;
+      student.score += correctAnswers * 10;
+      student.updatedAt = new Date();
+      await student.save();
+    }
+
     const log = new Log({
       type: 'test_completed',
-      userId: studentName, // Используем имя как идентификатор
+      userId: req.user.studentId,
       userType: 'student',
-      details: { levelId, grade, percentage }
+      details: { levelId, grade, percentage, coinsEarned }
     });
     await log.save();
 
@@ -259,7 +306,7 @@ app.get('/api/admin/statistics', authenticateToken, async (req, res) => {
       return res.status(403).json({ error: 'Доступ запрещен' });
     }
 
-    const totalStudents = await Result.distinct('studentName').then(names => names.length);
+    const totalStudents = await Student.countDocuments();
     const totalTeachers = await Teacher.countDocuments();
     const totalTests = await Result.countDocuments();
     const averageScore = await Result.aggregate([

@@ -1,28 +1,36 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
-      "@store": path.resolve(__dirname, "./src/store"),
-      "@components": path.resolve(__dirname, "./src/components"),
-      "@pages": path.resolve(__dirname, "./src/pages"),
-      "@hooks": path.resolve(__dirname, "./src/hooks"),
-      "@api": path.resolve(__dirname, "./src/api"),
-      "@types": path.resolve(__dirname, "./src/types"),
-      "@styles": path.resolve(__dirname, "./src/styles"),
+      "@": "/src",
+      "@store": "/src/store",
+      "@store/": "/src/store/",
+      "@components": "/src/components",
+      "@components/": "/src/components/",
+      "@pages": "/src/pages",
+      "@pages/": "/src/pages/",
+      "@hooks": "/src/hooks",
+      "@hooks/": "/src/hooks/",
+      "@api": "/src/api",
+      "@api/": "/src/api/",
+      "@types": "/src/types",
+      "@types/": "/src/types/",
+      "@styles": "/src/styles",
+      "@styles/": "/src/styles/",
     },
   },
   server: {
     port: 3000,
     open: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     outDir: "dist",

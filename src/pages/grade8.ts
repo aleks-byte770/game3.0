@@ -1,4 +1,4 @@
-import type { Level } from '../../types/index'
+import type { Level } from '../types/index'
 
 export const grade8Levels: Level[] = [
   // ================= 8 КЛАСС =================

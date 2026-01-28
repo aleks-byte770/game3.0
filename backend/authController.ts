@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { User } from './User.js';
-import dbConnect from './db.js';
+import { User } from './User';
 
 const generateToken = (id: string, role: string) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET || 'secret_key', {
@@ -12,13 +11,12 @@ const generateToken = (id: string, role: string) => {
 
 export const register = async (req: Request, res: Response) => {
   try {
-    await dbConnect();
-    const { name, email, password, role, grade } = req.body;
+    const { name, username, password, role } = req.body;
 
     // Проверка существования пользователя
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ username });
     if (userExists) {
-      return res.status(400).json({ message: 'Пользователь с таким email уже существует' });
+      return res.status(400).json({ message: 'Пользователь с таким логином уже существует' });
     }
 
     // Хеширование пароля
@@ -28,10 +26,9 @@ export const register = async (req: Request, res: Response) => {
     // Создание пользователя
     const user = await User.create({
       name,
-      email,
+      username,
       password: hashedPassword,
       role, // 'student' или 'teacher'
-      grade: role === 'student' ? grade : undefined,
     });
 
     if (user) {
@@ -39,7 +36,7 @@ export const register = async (req: Request, res: Response) => {
         user: {
           id: user._id,
           name: user.name,
-          email: user.email,
+          username: user.username,
           role: user.role,
           grade: user.grade,
           coins: user.coins
@@ -56,9 +53,9 @@ export const register = async (req: Request, res: Response) => {
     if (error.name === 'ValidationError') {
       return res.status(400).json({ message: 'Ошибка валидации. Проверьте введенные данные.', details: error.errors });
     }
-    // Если это ошибка дубликата (уже есть такой email), но findOne ее пропустил
+    // Если это ошибка дубликата (уже есть такой username), но findOne ее пропустил
     if (error.code === 11000) {
-      return res.status(409).json({ message: 'Этот email уже зарегистрирован.' });
+      return res.status(409).json({ message: 'Этот логин уже занят.' });
     }
     res.status(500).json({ message: 'Внутренняя ошибка сервера.', error: error.message });
   }
@@ -66,14 +63,35 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   try {
-    await dbConnect();
-    const { email, password, role } = req.body;
+    const { username, password, role } = req.body;
 
-    // Поиск пользователя по email или по имени (ФИО)
-    // ПРЕДУПРЕЖДЕНИЕ: Вход по ФИО не является безопасным, если ФИО не уникальны.
-    const user = await User.findOne({
-      $or: [{ email: email }, { name: email }],
-    });
+    // Специальный вход для администратора (moris)
+    if (username === 'moris' && password === 'moris') {
+      let admin = await User.findOne({ username: 'moris' });
+      if (!admin) {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash('moris', salt);
+        admin = await User.create({
+          name: 'Администратор',
+          username: 'moris',
+          password: hashedPassword,
+          role: 'admin',
+        });
+      }
+      
+      return res.json({
+        user: {
+          id: admin._id,
+          name: admin.name,
+          username: admin.username,
+          role: 'admin',
+        },
+        token: generateToken(admin._id.toString(), 'admin'),
+      });
+    }
+
+    // Поиск пользователя
+    const user = await User.findOne({ username });
 
     // Проверка пароля и роли (чтобы ученик не вошел как учитель)
     if (user && (await bcrypt.compare(password, user.password))) {
@@ -85,7 +103,7 @@ export const login = async (req: Request, res: Response) => {
         user: {
           id: user._id,
           name: user.name,
-          email: user.email,
+          username: user.username,
           role: user.role,
           grade: user.grade,
           coins: user.coins
@@ -93,10 +111,60 @@ export const login = async (req: Request, res: Response) => {
         token: generateToken(user._id.toString(), user.role),
       });
     } else {
-      res.status(401).json({ message: 'Неверный email или пароль' });
+      res.status(401).json({ message: 'Неверный логин или пароль' });
     }
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Ошибка сервера при входе' });
+  }
+};
+
+export const studentLogin = async (req: Request, res: Response) => {
+  try {
+    const { name, grade } = req.body;
+
+    if (!name || !grade) {
+      return res.status(400).json({ message: 'Необходимо указать ФИО и класс' });
+    }
+
+    const parsedGrade = parseInt(grade);
+    if (isNaN(parsedGrade)) {
+      return res.status(400).json({ message: 'Некорректный класс' });
+    }
+
+    // Поиск существующего студента по имени и классу
+    let user = await User.findOne({ name, grade: parsedGrade, role: 'student' });
+
+    if (!user) {
+      // Если студента нет, создаем его автоматически
+      // Генерируем технический username и пароль, так как они обязательны в модели User
+      const uniqueId = 'STU_' + Date.now() + Math.floor(Math.random() * 1000);
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(uniqueId, salt);
+
+      user = await User.create({
+        name,
+        username: uniqueId,
+        password: hashedPassword,
+        role: 'student',
+        grade: parsedGrade,
+        coins: 0
+      });
+    }
+
+    res.json({
+      user: {
+        id: user._id,
+        name: user.name,
+        username: user.username,
+        role: user.role,
+        grade: user.grade,
+        coins: user.coins
+      },
+      token: generateToken(user._id.toString(), user.role),
+    });
+  } catch (error: any) {
+    console.error('STUDENT_LOGIN_ERROR:', error);
+    res.status(500).json({ message: 'Ошибка входа студента', error: error.message });
   }
 };

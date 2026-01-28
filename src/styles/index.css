@@ -48,21 +48,6 @@ button:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.notification {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: var(--success);
-  color: white;
-  padding: 1rem 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-  text-align: center;
-  font-weight: bold;
-}
-
 input, textarea, select {
   font-family: inherit;
   border: 1px solid var(--gray-300);
@@ -493,6 +478,129 @@ input:disabled {
   color: #166534;
 }
 
+/* ===== Game Styles ===== */
+.game-container {
+  min-height: 100vh;
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 15px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.btn-back {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.levels-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.level-card {
+  background: white;
+  border: 2px solid var(--gray-200);
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.level-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.level-card h3 {
+  margin-bottom: 10px;
+  color: var(--gray-900);
+}
+
+.level-card p {
+  color: var(--gray-600);
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.level-reward {
+  font-weight: 600;
+  color: var(--warning);
+  font-size: 14px;
+}
+
+.question-card {
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.question-card h2 {
+  margin-bottom: 30px;
+  color: var(--gray-800);
+  font-size: 24px;
+}
+
+.choices-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+}
+
+.choice-btn {
+  background: var(--gray-50);
+  border: 2px solid var(--gray-200);
+  padding: 15px 20px;
+  border-radius: 10px;
+  font-size: 16px;
+  color: var(--gray-700);
+  text-align: left;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.choice-btn:hover {
+  background: white;
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+}
+
+.result-screen {
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+}
+
+.result-screen h2 {
+  font-size: 32px;
+  color: var(--primary);
+  margin-bottom: 10px;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
   .auth-card {
@@ -529,204 +637,5 @@ input:disabled {
 
   .btn {
     width: 100%;
-  }
-}
-
-/* ===== Game Grade Page Styles ===== */
-.game-grade-container {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 1rem;
-  font-family: sans-serif;
-}
-
-.game-grade-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 1rem;
-}
-
-.game-grade-header h1 {
-  font-size: 1.8rem;
-  margin: 0;
-}
-
-.btn-back {
-  background: #f0f0f0;
-  border: 1px solid #ddd;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1rem;
-}
-.btn-back:hover {
-  background: #e0e0e0;
-}
-
-.levels-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1.5rem;
-}
-
-.level-card {
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 1.5rem;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-}
-
-.level-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 15px rgba(0,0,0,0.1);
-}
-
-.level-card h3 {
-  margin-top: 0;
-  color: #333;
-}
-
-.level-card p {
-  color: #666;
-  font-size: 0.9rem;
-}
-
-/* ===== Game Level Page Styles ===== */
-.game-level-container {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 1rem;
-  font-family: sans-serif;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-}
-
-.game-level-header {
-  margin-bottom: 2rem;
-  text-align: center;
-}
-
-.game-level-header h1 {
-  font-size: 2rem;
-  color: var(--primary);
-  margin-bottom: 1rem;
-}
-
-.progress-bar {
-  width: 100%;
-  height: 10px;
-  background-color: var(--gray-200);
-  border-radius: 5px;
-  overflow: hidden;
-}
-
-.progress-bar-inner {
-  height: 100%;
-  background-color: var(--secondary);
-  transition: width 0.3s ease;
-}
-
-.question-container {
-  padding: 1rem;
-}
-
-.question-container h2 {
-  font-size: 1.2rem;
-  color: var(--gray-500);
-  margin-bottom: 0.5rem;
-}
-
-.question-text {
-  font-size: 1.5rem;
-  font-weight: 500;
-  margin-bottom: 2rem;
-  min-height: 60px;
-}
-
-.choices-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.choice-btn {
-  width: 100%;
-  padding: 1rem;
-  font-size: 1rem;
-  text-align: left;
-  background: var(--gray-50);
-  border: 2px solid var(--gray-200);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.choice-btn:hover:not(:disabled) {
-  border-color: var(--primary);
-  background: #f5f5ff;
-  transform: translateY(-2px);
-}
-
-.choice-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.8;
-}
-
-.choice-btn.correct {
-  background-color: #dcfce7;
-  border-color: var(--success);
-  color: #166534;
-  font-weight: bold;
-}
-
-.choice-btn.incorrect {
-  background-color: #fee2e2;
-  border-color: var(--danger);
-  color: #991b1b;
-  font-weight: bold;
-}
-
-.explanation-box {
-  margin-top: 1.5rem;
-  padding: 1.5rem;
-  background: var(--gray-100);
-  border-radius: 8px;
-  border-left: 4px solid var(--primary);
-}
-
-.explanation-box p {
-  margin-bottom: 1rem;
-  font-size: 1rem;
-  color: var(--gray-700);
-}
-
-.btn-next {
-  display: block;
-  width: 100%;
-  padding: 1rem;
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: #fff;
-  background-color: var(--primary);
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.btn-next:hover {
-  background-color: var(--primary-dark);
-}
-
-@media (max-width: 600px) {
-  .choices-grid {
-    grid-template-columns: 1fr;
   }
 }
