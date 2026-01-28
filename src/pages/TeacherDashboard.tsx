@@ -125,9 +125,8 @@ export const TeacherDashboard: FC = () => {
   const loadStudents = async () => {
     try {
       setLoading(true)
-      // const data = await api.getStudents()
-      // setStudents(data)
-      setStudents([]) // Пока пусто, будет заполнено из API
+      const response = await api.getStudents()
+      setStudents(response.data)
     } catch (error) {
       console.error('Ошибка загрузки учеников:', error)
     } finally {

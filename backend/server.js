@@ -37,6 +37,7 @@ const studentSchema = new mongoose.Schema({
   score: { type: Number, default: 0 },
   coins: { type: Number, default: 0 },
   achievements: [String],
+  completedLevels: [String],
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
@@ -275,6 +276,12 @@ app.get('/api/teachers/students', authenticateToken, async (req, res) => {
       return res.status(403).json({ error: 'Доступ запрещен' });
     }
 
+    // Если админ, возвращаем всех студентов
+    if (req.user.userType === 'admin') {
+      const students = await Student.find().sort({ createdAt: -1 });
+      return res.json(students);
+    }
+
     const teacher = await Teacher.findById(req.user.teacherId).populate('students');
     res.json(teacher.students);
   } catch (err) {
@@ -308,6 +315,12 @@ app.post('/api/results', authenticateToken, async (req, res) => {
     if (student) {
       student.coins += coinsEarned;
       student.score += correctAnswers * 10;
+      
+      if (!student.completedLevels) student.completedLevels = [];
+      if (!student.completedLevels.includes(levelId)) {
+        student.completedLevels.push(levelId);
+      }
+
       student.updatedAt = new Date();
       await student.save();
     }
