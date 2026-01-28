@@ -224,8 +224,13 @@ app.post('/api/teachers/login', async (req, res) => {
 });
 
 // Регистрация учителя
-app.post('/api/teachers/register', async (req, res) => {
+app.post('/api/teachers/register', authenticateToken, async (req, res) => {
   try {
+    // Только администратор может регистрировать учителей
+    if (req.user.userType !== 'admin') {
+      return res.status(403).json({ error: 'Доступ запрещен. Только администратор может выполнять это действие.' });
+    }
+
     const { name, username, password } = req.body;
     if (!name || !username || !password) {
       return res.status(400).json({ error: 'Имя, логин и пароль обязательны' });
