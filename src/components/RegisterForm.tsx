@@ -15,6 +15,7 @@ export const RegisterForm: FC = () => {
     grade: '',
   })
   const [userType, setUserType] = useState<'student' | 'teacher'>('student')
+  const [teacherAction, setTeacherAction] = useState<'login' | 'register'>('login')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -38,13 +39,22 @@ export const RegisterForm: FC = () => {
         }
         response = await api.studentLogin(formData.name, parseInt(formData.grade, 10))
       } else {
-        // teacher
-        if (!formData.username || !formData.password) {
-          setError('Пожалуйста, введите логин и пароль.')
-          setLoading(false)
-          return
+        if (teacherAction === 'register') {
+          if (!formData.name || !formData.username || !formData.password) {
+            setError('Пожалуйста, введите ФИО, логин и пароль.')
+            setLoading(false)
+            return
+          }
+          response = await api.teacherRegister(formData.name, formData.username, formData.password)
+        } else {
+          // login
+          if (!formData.username || !formData.password) {
+            setError('Пожалуйста, введите логин и пароль.')
+            setLoading(false)
+            return
+          }
+          response = await api.teacherLogin(formData.username, formData.password)
         }
-        response = await api.teacherLogin(formData.username, formData.password)
       }
 
       const { student, teacher, user, token } = (response as any).data
@@ -136,6 +146,29 @@ export const RegisterForm: FC = () => {
             </>
           ) : (
             <>
+              <div className="action-toggle">
+                <button
+                  type="button"
+                  className={`toggle-btn-small ${teacherAction === 'login' ? 'active' : ''}`}
+                  onClick={() => setTeacherAction('login')}
+                >
+                  Вход
+                </button>
+                <button
+                  type="button"
+                  className={`toggle-btn-small ${teacherAction === 'register' ? 'active' : ''}`}
+                  onClick={() => setTeacherAction('register')}
+                >
+                  Регистрация
+                </button>
+              </div>
+
+              {teacherAction === 'register' && (
+                <div className="form-group">
+                  <label htmlFor="name">ФИО</label>
+                  <input id="name" type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Мария Ивановна" required disabled={loading} />
+                </div>
+              )}
               <div className="form-group">
                 <label htmlFor="username">Логин</label>
                 <input
@@ -144,7 +177,7 @@ export const RegisterForm: FC = () => {
                   name="username"
                   value={formData.username}
                   onChange={handleChange}
-                  placeholder="Придумайте логин"
+                  placeholder="Логин для входа"
                   required
                   disabled={loading}
                 />
@@ -168,7 +201,7 @@ export const RegisterForm: FC = () => {
           {error && <div className="error-message">{error}</div>}
 
           <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Вход...' : 'Войти'}
+            {loading ? 'Загрузка...' : teacherAction === 'register' ? 'Зарегистрироваться' : 'Войти'}
           </button>
         </form>
       </div>

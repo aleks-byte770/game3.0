@@ -21,6 +21,9 @@ export const getStudentResultsByGrade = (grade: number) =>
 export const teacherLogin = (username: string, password: string) =>
   api.post('/teachers/login', { username, password })
 
+export const teacherRegister = (name: string, username: string, password: string) =>
+  api.post('/teachers/register', { name, username, password })
+
 export const getTeacherProfile = () => api.get('/teachers/profile')
 export const getStudents = () => api.get('/teachers/students')
 export const getTeacherStudentResults = (studentId: string) =>

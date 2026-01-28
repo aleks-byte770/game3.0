@@ -22,36 +22,10 @@ mongoose.connect(mongoUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
-  .then(() => {
-    console.log('✅ MongoDB подключена');
-    seedInitialData(); // Вызываем функцию для создания начальных данных
-  })
+  .then(() => console.log('✅ MongoDB подключена'))
   .catch(err => console.error('❌ Ошибка MongoDB:', err));
 
 // ====================== МОДЕЛИ ======================
-
-// Функция для создания начальных данных (учителей)
-async function seedInitialData() {
-  try {
-    const teacherCount = await Teacher.countDocuments();
-    // Создаем учителей, только если их нет в базе
-    if (teacherCount === 0) {
-      console.log('Учителя не найдены, создаю начальные данные...');
-      const teachersToSeed = [
-        { name: 'Мария Ивановна Петрова', username: 'm_ivanova', password: 'password123' },
-        { name: 'Петр Сергеевич Сидоров', username: 'p_sidorov', password: 'password456' },
-      ];
-
-      for (const teacherData of teachersToSeed) {
-        const hashedPassword = await bcrypt.hash(teacherData.password, 10);
-        await new Teacher({ ...teacherData, password: hashedPassword }).save();
-      }
-      console.log('✅ Начальные данные учителей успешно созданы.');
-    }
-  } catch (error) {
-    console.error('❌ Ошибка при создании начальных данных:', error);
-  }
-}
 
 // Модель пользователя (ученика)
 const studentSchema = new mongoose.Schema({
@@ -246,6 +220,46 @@ app.post('/api/teachers/login', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Ошибка входа' });
+  }
+});
+
+// Регистрация учителя
+app.post('/api/teachers/register', async (req, res) => {
+  try {
+    const { name, username, password } = req.body;
+    if (!name || !username || !password) {
+      return res.status(400).json({ error: 'Имя, логин и пароль обязательны' });
+    }
+
+    const existingTeacher = await Teacher.findOne({ username });
+    if (existingTeacher) {
+      return res.status(409).json({ error: 'Учитель с таким логином уже существует' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newTeacher = new Teacher({
+      name,
+      username,
+      password: hashedPassword,
+    });
+
+    await newTeacher.save();
+
+    const log = new Log({
+      type: 'register',
+      userId: newTeacher._id,
+      userType: 'teacher',
+      details: { username }
+    });
+    await log.save();
+
+    const userType = newTeacher.isAdmin ? 'admin' : 'teacher';
+    const token = generateToken({ teacherId: newTeacher._id, username, userType });
+    res.status(201).json({ token, teacher: { _id: newTeacher._id, username, name: newTeacher.name, school: newTeacher.school, role: userType } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Ошибка регистрации учителя' });
   }
 });
 
