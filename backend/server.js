@@ -60,7 +60,7 @@ const teacherSchema = new mongoose.Schema({
 // Модель результатов тестов
 const resultSchema = new mongoose.Schema({
   studentId: { type: String, required: true },
-  levelId: { type: Number, required: true },
+  levelId: { type: String, required: true },
   grade: { type: Number, required: true },
   correctAnswers: Number,
   totalQuestions: Number,
@@ -248,7 +248,7 @@ app.post('/api/results', authenticateToken, async (req, res) => {
 
     const result = new Result({
       studentId: req.user.studentId,
-      levelId: parseInt(levelId),
+      levelId: levelId,
       grade: parseInt(grade),
       correctAnswers,
       totalQuestions,
