@@ -3,18 +3,121 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@store/authStore'
 import * as api from '@api/endpoints'
 
+const AdminTeacherRegistrationForm: FC = () => {
+  const [formData, setFormData] = useState({ name: '', username: '', password: '' });
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setMessage('');
+    setLoading(true);
+    try {
+      await api.teacherRegister(formData.name, formData.username, formData.password);
+      setMessage(`Учитель "${formData.name}" успешно зарегистрирован!`);
+      setFormData({ name: '', username: '', password: '' });
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Ошибка регистрации');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="admin-form-container" style={{ marginBottom: '40px', borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
+      <h3>Регистрация нового учителя</h3>
+      <form onSubmit={handleSubmit} className="admin-form">
+        <div className="form-group">
+          <label htmlFor="teacher-name">ФИО</label>
+          <input id="teacher-name" type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Иванова Мария Петровна" required disabled={loading} />
+        </div>
+        <div className="form-group">
+          <label htmlFor="teacher-username">Логин</label>
+          <input id="teacher-username" type="text" name="username" value={formData.username} onChange={handleChange} placeholder="m_ivanova" required disabled={loading} />
+        </div>
+        <div className="form-group">
+          <label htmlFor="teacher-password">Пароль</label>
+          <input id="teacher-password" type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Надежный пароль" required disabled={loading} />
+        </div>
+        {error && <div className="error-message">{error}</div>}
+        {message && <div className="success-message" style={{ color: 'green', marginTop: '10px' }}>{message}</div>}
+        <button type="submit" className="btn btn-primary" disabled={loading}>
+          {loading ? 'Регистрация...' : 'Зарегистрировать учителя'}
+        </button>
+      </form>
+    </div>
+  );
+};
+
+const AdminStudentRegistrationForm: FC = () => {
+  const [formData, setFormData] = useState({ name: '', grade: '' });
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setMessage('');
+    setLoading(true);
+    try {
+      await api.adminAddStudent(formData.name, parseInt(formData.grade));
+      setMessage(`Ученик "${formData.name}" успешно добавлен!`);
+      setFormData({ name: '', grade: '' });
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Ошибка добавления ученика');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="admin-form-container">
+      <h3>Добавление нового ученика</h3>
+      <form onSubmit={handleSubmit} className="admin-form">
+        <div className="form-group">
+          <label htmlFor="student-name">ФИО</label>
+          <input id="student-name" type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Петров Иван" required disabled={loading} />
+        </div>
+        <div className="form-group">
+          <label htmlFor="student-grade">Класс</label>
+          <input id="student-grade" type="number" name="grade" value={formData.grade} onChange={handleChange} placeholder="Например, 5" required min="1" max="11" disabled={loading} />
+        </div>
+        {error && <div className="error-message">{error}</div>}
+        {message && <div className="success-message" style={{ color: 'green', marginTop: '10px' }}>{message}</div>}
+        <button type="submit" className="btn btn-primary" disabled={loading}>
+          {loading ? 'Добавление...' : 'Добавить ученика'}
+        </button>
+      </form>
+    </div>
+  );
+};
+
 export const TeacherDashboard: FC = () => {
   const navigate = useNavigate()
   const user = useAuthStore((state: any) => state.user)
   const logout = useAuthStore((state: any) => state.logout)
   const [students, setStudents] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'students' | 'results' | 'groups'>('students')
+  const [activeTab, setActiveTab] = useState<'students' | 'results' | 'groups' | 'admin'>('students')
 
   useEffect(() => {
     if (!user || (user.role !== 'teacher' && user.role !== 'admin')) {
       navigate('/login')
       return
+    }
+    if (user.role === 'admin') {
+      setActiveTab('admin')
     }
     loadStudents()
   }, [user, navigate])
@@ -41,7 +144,7 @@ export const TeacherDashboard: FC = () => {
     <div className="teacher-container">
       <header className="teacher-header">
         <div className="header-content">
-          <h1>Панель учителя</h1>
+          <h1>{user?.role === 'admin' ? 'Панель администратора' : 'Панель учителя'}</h1>
           <div className="user-info">
             <span>Добро пожаловать, {user?.name}!</span>
             <button className="btn btn-secondary" onClick={handleLogout}>
@@ -70,6 +173,14 @@ export const TeacherDashboard: FC = () => {
         >
           Группы
         </button>
+        {user?.role === 'admin' && (
+          <button
+            className={`nav-btn ${activeTab === 'admin' ? 'active' : ''}`}
+            onClick={() => setActiveTab('admin')}
+          >
+            Администрирование
+          </button>
+        )}
       </nav>
 
       <main className="teacher-main">
@@ -77,7 +188,6 @@ export const TeacherDashboard: FC = () => {
           <section className="students-section">
             <div className="section-header">
               <h2>Управление учениками</h2>
-              <button className="btn btn-primary">+ Добавить ученика</button>
             </div>
 
             {loading ? (
@@ -134,6 +244,13 @@ export const TeacherDashboard: FC = () => {
             <div className="empty-state">
               <p>Нет групп. Создавайте группы для организации учеников по классам.</p>
             </div>
+          </section>
+        )}
+
+        {activeTab === 'admin' && user?.role === 'admin' && (
+          <section className="admin-section">
+            <AdminTeacherRegistrationForm />
+            <AdminStudentRegistrationForm />
           </section>
         )}
       </main>

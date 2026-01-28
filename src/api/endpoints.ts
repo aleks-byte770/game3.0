@@ -35,3 +35,5 @@ export const getGroups = () => api.get('/teachers/groups')
 export const getLogs = () => api.get('/admin/logs')
 export const getStats = () => api.get('/admin/stats')
 export const deleteUser = (userId: string) => api.delete(`/admin/users/${userId}`)
+export const adminAddStudent = (name: string, grade: number) =>
+  api.post('/admin/students/add', { name, grade })

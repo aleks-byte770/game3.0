@@ -369,6 +369,44 @@ app.get('/api/admin/statistics', authenticateToken, async (req, res) => {
   }
 });
 
+// Создание студента админом
+app.post('/api/admin/students/add', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.userType !== 'admin') {
+      return res.status(403).json({ error: 'Доступ запрещен' });
+    }
+
+    const { name, grade } = req.body;
+    if (!name || !grade) {
+      return res.status(400).json({ error: 'Необходимо указать ФИО и класс' });
+    }
+
+    const parsedGrade = parseInt(grade);
+    if (isNaN(parsedGrade) || parsedGrade < 1 || parsedGrade > 11) {
+        return res.status(400).json({ error: 'Некорректный класс' });
+    }
+
+    let student = await Student.findOne({ name, grade: parsedGrade });
+    if (student) {
+        return res.status(409).json({ error: 'Студент с таким ФИО и классом уже существует' });
+    }
+
+    const studentId = 'STU_' + Date.now();
+    student = new Student({
+      studentId,
+      name,
+      grade: parsedGrade,
+      email: `${studentId}@school.local`,
+    });
+    await student.save();
+
+    res.status(201).json(student);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Ошибка создания студента' });
+  }
+});
+
 // ====================== ЗДОРОВЬЕ СЕРВЕРА ======================
 
 app.get('/api/health', (req, res) => {
