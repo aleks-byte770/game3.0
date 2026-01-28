@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { User } from './User.js';
-import dbConnect from './db.js';
+import { User } from './User';
 
 const generateToken = (id: string, role: string) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET || 'secret_key', {
@@ -12,7 +11,6 @@ const generateToken = (id: string, role: string) => {
 
 export const register = async (req: Request, res: Response) => {
   try {
-    await dbConnect();
     const { name, email, password, role, grade } = req.body;
 
     // Проверка существования пользователя
@@ -66,7 +64,6 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   try {
-    await dbConnect();
     const { email, password, role } = req.body;
 
     // Поиск пользователя по email или по имени (ФИО)
