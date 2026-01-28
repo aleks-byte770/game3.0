@@ -1,4 +1,4 @@
-import { Level } from '@types';
+import type { Level } from '../../types/index'
 
 export const grade7Levels: Level[] = [
   // ================= 7 КЛАСС =================

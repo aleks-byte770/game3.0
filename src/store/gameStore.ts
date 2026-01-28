@@ -11,6 +11,7 @@ import { grade8Levels } from './levels/grade8'
 import { grade9Levels } from './levels/grade9'
 import { grade10Levels } from './levels/grade10'
 import { grade11Levels } from './levels/grade11'
+import { grade12Levels } from './levels/grade12'
 
 interface GameState {
   levels: Level[]
@@ -35,6 +36,7 @@ const allLevels: Level[] = [
   ...grade9Levels,
   ...grade10Levels,
   ...grade11Levels,
+  ...grade12Levels,
 ]
 
 export const useGameStore = create<GameState>((set, get) => ({
