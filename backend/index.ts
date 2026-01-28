@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import { register, login, studentLogin } from './authController';
 import dbConnect from './db';
 import { User } from './User';
@@ -97,6 +98,109 @@ router.post('/results', authenticateToken, async (req: any, res: any) => {
     }
   } catch (error) {
     res.status(500).json({ message: 'Error saving results' });
+  }
+});
+
+// ================= АДМИН МАРШРУТЫ (Добавлено) =================
+
+// 1. Создание студента админом
+router.post('/admin/students/add', authenticateToken, async (req: any, res: any) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Доступ запрещен' });
+    }
+    const { name, grade } = req.body;
+    if (!name || !grade) {
+      return res.status(400).json({ message: 'Необходимо указать ФИО и класс' });
+    }
+
+    const parsedGrade = parseInt(grade);
+    if (isNaN(parsedGrade)) {
+      return res.status(400).json({ message: 'Некорректный класс' });
+    }
+
+    // Проверка на дубликат
+    const existing = await User.findOne({ name, grade: parsedGrade, role: 'student' });
+    if (existing) {
+      return res.status(409).json({ message: 'Ученик уже существует' });
+    }
+
+    // Генерируем технические данные
+    const uniqueId = 'STU_' + Date.now() + Math.floor(Math.random() * 1000);
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(uniqueId, salt);
+
+    const user = await User.create({
+      name,
+      username: uniqueId,
+      password: hashedPassword,
+      role: 'student',
+      grade: parsedGrade,
+      coins: 0
+    });
+
+    res.status(201).json(user);
+  } catch (error: any) {
+    res.status(500).json({ message: 'Ошибка создания ученика', error: error.message });
+  }
+});
+
+// 2. Получение списка учеников (для учителя и админа)
+router.get('/teachers/students', authenticateToken, async (req: any, res: any) => {
+  try {
+    if (req.user.role !== 'teacher' && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Доступ запрещен' });
+    }
+    
+    // Возвращаем всех студентов
+    const students = await User.find({ role: 'student' }).sort({ createdAt: -1 });
+    
+    // Форматируем данные для фронтенда
+    const formattedStudents = students.map(s => ({
+      _id: s._id,
+      name: s.name,
+      grade: s.grade,
+      coins: s.coins,
+      totalTestsCompleted: s.completedLevels?.length || 0,
+      totalCorrectAnswers: 0 // В этой версии бэкенда детальная статистика упрощена
+    }));
+
+    res.json(formattedStudents);
+  } catch (error) {
+    res.status(500).json({ message: 'Ошибка получения списка учеников' });
+  }
+});
+
+// 3. Удаление пользователя
+router.delete('/admin/users/:userId', authenticateToken, async (req: any, res: any) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Доступ запрещен' });
+    }
+    await User.findByIdAndDelete(req.params.userId);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: 'Ошибка удаления пользователя' });
+  }
+});
+
+// 4. Статистика для админа
+router.get('/admin/stats', authenticateToken, async (req: any, res: any) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Доступ запрещен' });
+    }
+    const totalStudents = await User.countDocuments({ role: 'student' });
+    const totalTeachers = await User.countDocuments({ role: 'teacher' });
+    
+    res.json({
+      totalStudents,
+      totalTeachers,
+      totalTests: 0,
+      averageScore: 0
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Ошибка получения статистики' });
   }
 });
 
