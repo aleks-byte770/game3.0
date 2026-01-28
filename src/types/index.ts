@@ -40,7 +40,7 @@ export interface Question {
   explanation: string
 }
 
-export interface TestResult {
+export interface Result {
   id: string
   studentId: string
   levelId: string

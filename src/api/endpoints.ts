@@ -13,7 +13,7 @@ export const getLevelsByGrade = (grade: number) => api.get(`/levels/grade/${grad
 
 // === Результаты тестов ===
 export const saveResult = (data: any) => api.post('/results', data)
-export const getStudentResults = () => api.get('/results/student')
+export const getStudentResults = () => api.get('/students/results')
 export const getStudentResultsByGrade = (grade: number) =>
   api.get(`/results/student/grade/${grade}`)
 
