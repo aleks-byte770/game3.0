@@ -199,24 +199,26 @@ export const TeacherDashboard: FC = () => {
               <table className="students-table">
                 <thead>
                   <tr>
-                    <th>Имя</th>
-                    <th>Email</th>
+                    <th>ФИО</th>
                     <th>Класс</th>
-                    <th>Статус</th>
+                    <th>Пройдено тестов</th>
+                    <th>Правильных ответов</th>
+                    <th>Монеты</th>
                     <th>Действия</th>
                   </tr>
                 </thead>
                 <tbody>
                   {students.map((student) => (
-                    <tr key={student.id}>
+                    <tr key={student._id}>
                       <td>{student.name}</td>
-                      <td>{student.email}</td>
                       <td>{student.grade}</td>
+                      <td>{student.totalTestsCompleted ?? 0}</td>
+                      <td>{student.totalCorrectAnswers ?? 0}</td>
+                      <td>{student.coins ?? 0}</td>
                       <td>
-                        <span className="badge badge-success">Активен</span>
-                      </td>
-                      <td>
-                        <button className="btn-small">Результаты</button>
+                        <button className="btn-small" style={{ marginRight: '5px' }}>
+                          Результаты
+                        </button>
                         <button className="btn-small btn-danger">Удалить</button>
                       </td>
                     </tr>
